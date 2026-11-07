@@ -1,0 +1,7 @@
+# Build outputs
+tree_test
+*.o
+
+# Editor
+*.swp
+*~
