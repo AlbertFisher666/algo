@@ -21,8 +21,14 @@ Expected output ends with:
 ## Layout
 
     include/algo/tree.hpp   BST — contract
+    include/algo/list.hpp   DLL — contract
+    include/algo/hash.hpp   hash — contract
     src/tree.cpp            BST — implementation
-    tests/tree_test.cpp     BST — tests (assert-based)
+    src/list.cpp            DLL — implementation
+    src/hash.cpp            hash — implementation
+    tests/tree_test.cpp     BST — tests
+    tests/list_test.cpp     DLL — tests
+    tests/hash_test.cpp     hash — tests
     Makefile                build rules
 
 ## API
@@ -40,6 +46,31 @@ Expected output ends with:
     int  tree_height(const Tree* t);
     void tree_print(const Tree* t);
 
+### list.hpp
+
+    struct ListNode { int key; ListNode* prev; ListNode* next; };
+    struct List     { ListNode* head; ListNode* tail; int size; };
+
+    void list_init(List* l);
+    void list_free(List* l);
+    int  list_push_back(List* l, int key);
+    int  list_push_front(List* l, int key);
+    ListNode* list_find(List* l, int key);
+    int  list_remove(List* l, int key);
+    void list_print(const List* l);
+
+### hash.hpp
+
+    struct HashNode { int key; HashNode* next; };
+    struct Hash     { HashNode** buckets; int capacity; int size; };
+
+    int  hash_init(Hash* h, int capacity);
+    void hash_free(Hash* h);
+    int  hash_insert(Hash* h, int key);
+    int  hash_find(const Hash* h, int key);
+    int  hash_remove(Hash* h, int key);
+    void hash_print(const Hash* h);
+
 ## Design notes
 
 - `tree_insert` is iterative, via `TreeNode**`. No recursion.
@@ -51,6 +82,10 @@ Expected output ends with:
   subtree, then detaches that min.
 - `tree_height` is recursive. Height of empty tree is 0.
 - `tree_print` is in-order. Output is sorted.
+- `list`: doubly linked. Iterative free. Push back/front.
+  Remove handles head, tail, middle.
+- `hash`: chained. FNV-1a over the key bytes. No resize.
+  Capacity is fixed at `hash_init`.
 
 ## Tests
 
@@ -63,6 +98,20 @@ Expected output ends with:
 - height: empty, one, two, three levels
 - remove: leaf, one child, two children
 - print: in-order output
+
+`list_test.cpp` covers:
+
+- init: empty
+- push: back, front
+- find: present, absent
+- remove: head, tail, middle
+
+`hash_test.cpp` covers:
+
+- init: bad capacity
+- insert: duplicate, collision
+- find: present, absent
+- remove: present, absent
 
 No framework. `assert` from `<assert.h>`.
 
