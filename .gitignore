@@ -6,3 +6,4 @@ tree_test
 *.swp
 *~
 build/
+*.repl

@@ -26,10 +26,21 @@ Expected output ends with:
     src/tree.cpp            BST — implementation
     src/list.cpp            DLL — implementation
     src/hash.cpp            hash — implementation
+    src/repl.cpp            interactive REPL — implementation
     tests/tree_test.cpp     BST — tests
     tests/list_test.cpp     DLL — tests
     tests/hash_test.cpp     hash — tests
     Makefile                build rules
+
+## Build the REPL
+
+    g++ -std=c++17 -O2 -Wall -Wextra -I include \
+        src/repl.cpp src/tree.cpp src/list.cpp src/hash.cpp \
+        -o build/repl
+
+Then:
+
+    ./build/repl
 
 ## API
 
@@ -71,6 +82,66 @@ Expected output ends with:
     int  hash_remove(Hash* h, int key);
     void hash_print(const Hash* h);
 
+## REPL
+
+`src/repl.cpp` is an interactive front-end to the three structures.
+Exactly one structure is live at a time; `teardown()` is the only
+place that destroys it. Same style: no iostream, no std::string,
+fixed buffers, `printf`.
+
+Commands:
+
+    tree                     create a BST
+    list                     create a doubly linked list
+    hash [cap]               create a hash table (cap default 16)
+    insert <k>               insert key (all structures)
+    find <k>                 find key (all structures)
+    remove <k>               remove key (all structures)
+    push_back <k>            append to list
+    push_front <k>           prepend to list
+    print                    print all keys, one per line
+    draw | schema | ascii    ASCII diagram of current structure
+    size                     current element count
+    height                   tree height
+    save <file.repl>         write current structure to a .repl file
+    load <file.repl>         read a .repl file into a new structure
+    free                     destroy current structure
+    help                     this message
+    quit | exit              leave
+
+### Diagrams
+
+`draw` prints the live structure as ASCII:
+
+- **tree** — indented BST with `|--` / `` `-- `` branches, followed by
+  `size=` and `height=`.
+- **list** — `head [k] <-> [k] <-> ... tail`, collapsed with
+  `... (N more) ...` when larger than `LIST_DRAW_MAX` (10), followed
+  by `size=`.
+- **hash** — one line per bucket, `[ i] k -> k -> ...` or `(empty)`,
+  followed by `load factor: d.dd`.
+
+All draw routines take `const` pointers and never mutate.
+
+### Save / Load (`.repl`)
+
+Plain text, one int per line. Lines starting with `#` are comments
+and are skipped on load; leading and trailing whitespace is trimmed.
+
+    # algo repl save
+    # structure: tree
+    tree
+    5
+    3
+    8
+
+The first non-comment non-blank line is the tag: `tree`, `list`,
+or `hash <capacity>`. Every following data line is one integer key.
+`load` builds into temporaries and only swaps in the new structure
+on full success, so a broken file never loses live data. Duplicate
+keys in the file are warned about and skipped. A missing `.repl`
+extension only warns.
+
 ## Design notes
 
 - `tree_insert` is iterative, via `TreeNode**`. No recursion.
@@ -86,6 +157,11 @@ Expected output ends with:
   Remove handles head, tail, middle.
 - `hash`: chained. FNV-1a over the key bytes. No resize.
   Capacity is fixed at `hash_init`.
+- `repl`: single global structure, `Kind` tag, `teardown()` as the
+  one destruction point. Command dispatch is a flat `strcmp` chain
+  in `main`. Integer parsing is `strtol` with full-string and
+  range checks (`parse_whole_int`). Save writes in-order for the
+  tree, head-to-tail for the list, bucket order for the hash.
 
 ## Tests
 
@@ -114,6 +190,8 @@ Expected output ends with:
 - remove: present, absent
 
 No framework. `assert` from `<assert.h>`.
+
+The REPL is exercised manually; no automated tests yet.
 
 ## License
 
