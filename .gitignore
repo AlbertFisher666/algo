@@ -7,3 +7,5 @@ tree_test
 *~
 build/
 *.repl
+STREAMING.md
+SCENARIO.md
