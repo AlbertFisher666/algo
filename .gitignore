@@ -1,5 +1,4 @@
 # Build outputs
-tree_test
 *.o
 
 # Editor
@@ -7,5 +6,7 @@ tree_test
 *~
 build/
 *.repl
+
+# Temp notes
 STREAMING.md
 SCENARIO.md
