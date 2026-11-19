@@ -10,6 +10,7 @@
 #include "algo/tree.hpp"
 
 #include <stdio.h>
+#include <stddef.h>
 
 /* ============================================================
  * Lifecycle

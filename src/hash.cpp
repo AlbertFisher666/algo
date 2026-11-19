@@ -10,6 +10,7 @@
 #include "algo/hash.hpp"
 
 #include <stdio.h>
+#include <stddef.h>
 
 static unsigned int hash_fn(int key, int cap) {
     unsigned int h = 2166136261u;             /* FNV-1a offset */
