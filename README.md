@@ -3,7 +3,8 @@
 A small algorithm library. One file per structure.
 No frameworks, no dependencies, 80s C-flavoured C++.
 
-**Status:** experiment. Not a product. No GitHub (yet).
+**Status:** experiment. Not a product. Private repo:
+https://github.com/AlbertFisher666/algo
 
 ## Requirements
 
@@ -23,24 +24,36 @@ Expected output ends with:
     include/algo/tree.hpp   BST — contract
     include/algo/list.hpp   DLL — contract
     include/algo/hash.hpp   hash — contract
+    include/algo/tree_algo.hpp   BST algorithms — contract
+    include/algo/list_algo.hpp   DLL algorithms — contract (stub, stage 3)
+    include/algo/hash_algo.hpp   hash introspection — contract (stub, stage 4)
     src/tree.cpp            BST — implementation
     src/list.cpp            DLL — implementation
     src/hash.cpp            hash — implementation
+    src/tree_algo.cpp       BST algorithms — implementation
+    src/list_algo.cpp       DLL algorithms — implementation (stub)
+    src/hash_algo.cpp       hash introspection — implementation (stub)
     src/repl.cpp            interactive REPL — implementation
     tests/tree_test.cpp     BST — tests
     tests/list_test.cpp     DLL — tests
     tests/hash_test.cpp     hash — tests
+    tests/tree_algo_test.cpp   BST algorithms — tests
     Makefile                build rules
 
 ## Build the REPL
 
-    g++ -std=c++17 -O2 -Wall -Wextra -I include \
-        src/repl.cpp src/tree.cpp src/list.cpp src/hash.cpp \
-        -o build/repl
+    make repl
 
 Then:
 
     ./build/repl
+
+Or directly, without make:
+
+    g++ -std=c++17 -O2 -Wall -Wextra -I include \
+        src/repl.cpp src/tree.cpp src/list.cpp src/hash.cpp \
+        src/tree_algo.cpp src/list_algo.cpp src/hash_algo.cpp \
+        -o build/repl
 
 ## API
 
@@ -81,6 +94,18 @@ Then:
     int  hash_find(const Hash* h, int key);
     int  hash_remove(Hash* h, int key);
     void hash_print(const Hash* h);
+
+### tree_algo.hpp
+
+    int tree_validate(const Tree* t);
+    int tree_min(const Tree* t, int* out);
+    int tree_max(const Tree* t, int* out);
+    int tree_to_array_inorder(const Tree* t, int* buf, int cap);
+    int tree_from_sorted_array(Tree* t, const int* keys, int n);
+    int tree_balance(Tree* t);
+
+    typedef void (*TreeVisitFn)(int key, void* user);
+    int tree_bfs(const Tree* t, TreeVisitFn cb, void* user);
 
 ## REPL
 
@@ -157,6 +182,13 @@ extension only warns.
   Remove handles head, tail, middle.
 - `hash`: chained. FNV-1a over the key bytes. No resize.
   Capacity is fixed at `hash_init`.
+- `tree_algo`: read-only over the BST. `validate` uses open bounds
+  just outside `int` range and strict `<`/`>`, so duplicates are
+  rejected (matches `tree_insert`). `to_array_inorder` and
+  `from_sorted_array` are inverses for sorted input. `balance` is
+  in-order -> array -> `tree_free` -> `from_sorted_array`.
+  `bfs` uses an array-backed queue `const TreeNode*[size]`,
+  head/tail indices, no `std::queue`.
 - `repl`: single global structure, `Kind` tag, `teardown()` as the
   one destruction point. Command dispatch is a flat `strcmp` chain
   in `main`. Integer parsing is `strtol` with full-string and
@@ -189,12 +221,27 @@ extension only warns.
 - find: present, absent
 - remove: present, absent
 
+`tree_algo_test.cpp` covers:
+
+- validate: empty, good, broken (wrong child on the left)
+- min / max: empty, extremes
+- to_array_inorder: sorted output, length == size
+- from_sorted_array: perfectly balanced, validate
+- balance: degenerate 1..7 -> height 3, validate
+- bfs: level-order via callback
+
 No framework. `assert` from `<assert.h>`.
 
 The REPL is exercised manually; no automated tests yet.
 
+## CI
+
+`.github/workflows/ci.yml` runs `make` and `make test` on every push
+and pull request. Same skeleton as `cpvm-cpp`: checkout, compiler
+version, build, test.
+
 ## License
 
-Personal experiment. Not for redistribution.
+MIT. See `LICENSE`.
 
 Copyright (c) 2026 Albert Ghosting Frangle (Albert Fisher)
