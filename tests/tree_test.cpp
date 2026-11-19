@@ -171,6 +171,6 @@ int main(void) {
     printf(">>> test_remove_two_children\n"); test_remove_two_children();
     printf(">>> test_print\n");            test_print();
 
-    printf("all tests passed\n");
+    printf("all tree tests passed\n");
     return 0;
 }
