@@ -25,8 +25,8 @@ Expected output ends with:
     include/algo/list.hpp   DLL — contract
     include/algo/hash.hpp   hash — contract
     include/algo/tree_algo.hpp   BST algorithms — contract
-    include/algo/list_algo.hpp   DLL algorithms — contract (stub, stage 3)
-    include/algo/hash_algo.hpp   hash introspection — contract (stub, stage 4)
+    include/algo/list_algo.hpp   DLL algorithms — contract (stub)
+    include/algo/hash_algo.hpp   hash introspection — contract (stub)
     src/tree.cpp            BST — implementation
     src/list.cpp            DLL — implementation
     src/hash.cpp            hash — implementation
@@ -194,6 +194,10 @@ extension only warns.
   in `main`. Integer parsing is `strtol` with full-string and
   range checks (`parse_whole_int`). Save writes in-order for the
   tree, head-to-tail for the list, bucket order for the hash.
+- `list_algo`: `reverse` is in-place, swaps `prev`/`next` per node,
+  then swaps `head`/`tail`. `middle` is two-pointer; for even size
+  returns the lower middle (`fast = head->next`). `sort` is stable
+  merge sort over `next`, then rebuilds `prev`, `tail`, `size`.
 
 ## Tests
 
@@ -229,6 +233,14 @@ extension only warns.
 - from_sorted_array: perfectly balanced, validate
 - balance: degenerate 1..7 -> height 3, validate
 - bfs: level-order via callback
+
+`list_algo_test.cpp` covers:
+
+- reverse: empty, one, even, odd — checks head/tail/prev/next
+- middle: empty, one, odd, even (lower middle)
+- sort: empty, one, reverse input, sorted input, duplicates
+- prev-chain: `check_forward` walks head->tail and verifies
+  `cur->prev == prev` and `l->tail == last`
 
 No framework. `assert` from `<assert.h>`.
 
