@@ -25,14 +25,14 @@ Expected output ends with:
     include/algo/list.hpp   DLL — contract
     include/algo/hash.hpp   hash — contract
     include/algo/tree_algo.hpp   BST algorithms — contract
-    include/algo/list_algo.hpp   DLL algorithms — contract (stub)
-    include/algo/hash_algo.hpp   hash introspection — contract (stub)
+    include/algo/list_algo.hpp   DLL algorithms — contract
+    include/algo/hash_algo.hpp   hash introspection — contract (stub, stage 4)
     src/tree.cpp            BST — implementation
     src/list.cpp            DLL — implementation
     src/hash.cpp            hash — implementation
     src/tree_algo.cpp       BST algorithms — implementation
-    src/list_algo.cpp       DLL algorithms — implementation (stub)
-    src/hash_algo.cpp       hash introspection — implementation (stub)
+    src/list_algo.cpp       DLL algorithms — implementation
+    src/hash_algo.cpp       hash introspection — implementation (stub, stage 4)
     src/repl.cpp            interactive REPL — implementation
     tests/tree_test.cpp     BST — tests
     tests/list_test.cpp     DLL — tests
