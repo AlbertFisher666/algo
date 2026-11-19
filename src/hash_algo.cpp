@@ -1,6 +1,6 @@
 /* ============================================================
- * hash_algo.hpp
- * Introspection over the chained hash table.
+ * hash_algo.cpp
+ * Introspection over the chained hash.
  * Stub: stage 4.
  *
  * Style: 80s C-flavoured C++.
@@ -8,13 +8,13 @@
  * Made by Albert Ghosting Frangle (aka Albert Fisher)
  * ============================================================ */
 
-#ifndef ALGO_HASH_ALGO_HPP
-#define ALGO_HASH_ALGO_HPP
+#include "algo/hash_algo.hpp"
 
-#include "algo/hash.hpp"
+#include <stdio.h>
+#include <stddef.h>
 
-/* (stage 4) struct HashStats { ... };
- * (stage 4) int hash_stats(const Hash* h, HashStats* out);
- */
+/* ============================================================
+ * Stage 4: hash_stats
+ * ============================================================ */
 
-#endif /* ALGO_HASH_ALGO_HPP */
+/* nothing yet */

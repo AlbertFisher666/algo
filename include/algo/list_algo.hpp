@@ -1,7 +1,6 @@
 /* ============================================================
  * list_algo.hpp
  * Algorithms over the doubly linked list.
- * Stub: stage 3.
  *
  * Style: 80s C-flavoured C++.
  *
@@ -13,9 +12,26 @@
 
 #include "algo/list.hpp"
 
-/* (stage 3) int list_reverse(List* l);      in place
- * (stage 3) ListNode* list_middle(List* l); two-pointer
- * (stage 3) int list_sort(List* l);         stable merge sort
- */
+/* ============================================================
+ * Reverse
+ * ============================================================ */
+
+/* Reverse in place. 0 on OK, -1 on NULL. */
+int list_reverse(List* l);
+
+/* ============================================================
+ * Middle
+ * ============================================================ */
+
+/* Middle node (two-pointer). NULL on empty list.
+ * For even size, returns the lower middle. */
+ListNode* list_middle(List* l);
+
+/* ============================================================
+ * Sort
+ * ============================================================ */
+
+/* Stable merge sort by key, in place. 0 on OK, -1 on NULL. */
+int list_sort(List* l);
 
 #endif /* ALGO_LIST_ALGO_HPP */
