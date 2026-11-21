@@ -1,7 +1,6 @@
 /* ============================================================
  * hash_algo.hpp
  * Introspection over the chained hash table.
- * Stub: stage 4.
  *
  * Style: 80s C-flavoured C++.
  *
@@ -13,8 +12,22 @@
 
 #include "algo/hash.hpp"
 
-/* (stage 4) struct HashStats { ... };
- * (stage 4) int hash_stats(const Hash* h, HashStats* out);
- */
+/* ============================================================
+ * Stats
+ * ============================================================ */
+
+struct HashStats {
+    int    capacity;
+    int    size;
+    int    min_chain;     /* 0 if table is empty */
+    int    max_chain;
+    int    empty_buckets;
+    double load_factor;   /* size / capacity */
+};
+
+/* Fill *out. 0 on OK, -1 on bad args.
+ * min_chain is computed over non-empty buckets only and is 0
+ * for an empty table. */
+int hash_stats(const Hash* h, HashStats* out);
 
 #endif /* ALGO_HASH_ALGO_HPP */
