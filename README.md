@@ -21,23 +21,23 @@ Expected output ends with:
 
 ## Layout
 
-    include/algo/tree.hpp   BST — contract
-    include/algo/list.hpp   DLL — contract
-    include/algo/hash.hpp   hash — contract
-    include/algo/tree_algo.hpp   BST algorithms — contract
-    include/algo/list_algo.hpp   DLL algorithms — contract
-    include/algo/hash_algo.hpp   hash introspection — contract (stub, stage 4)
-    src/tree.cpp            BST — implementation
-    src/list.cpp            DLL — implementation
-    src/hash.cpp            hash — implementation
-    src/tree_algo.cpp       BST algorithms — implementation
-    src/list_algo.cpp       DLL algorithms — implementation
-    src/hash_algo.cpp       hash introspection — implementation (stub, stage 4)
-    src/repl.cpp            interactive REPL — implementation
-    tests/tree_test.cpp     BST — tests
-    tests/list_test.cpp     DLL — tests
-    tests/hash_test.cpp     hash — tests
-    tests/tree_algo_test.cpp   BST algorithms — tests
+    include/algo/tree.hpp   BST -  contract
+    include/algo/list.hpp   DLL -  contract
+    include/algo/hash.hpp   hash -  contract
+    include/algo/tree_algo.hpp   BST algorithms -  contract
+    include/algo/list_algo.hpp   DLL algorithms -  contract
+    include/algo/hash_algo.hpp   hash introspection -  contract 
+    src/tree.cpp            BST -  implementation
+    src/list.cpp            DLL -  implementation
+    src/hash.cpp            hash -  implementation
+    src/tree_algo.cpp       BST algorithms -  implementation
+    src/list_algo.cpp       DLL algorithms -  implementation
+    src/hash_algo.cpp       hash introspection -  implementation 
+    src/repl.cpp            interactive REPL -  implementation
+    tests/tree_test.cpp     BST -  tests
+    tests/list_test.cpp     DLL -  tests
+    tests/hash_test.cpp     hash -  tests
+    tests/tree_algo_test.cpp   BST algorithms -  tests
     Makefile                build rules
 
 ## Build the REPL
@@ -107,6 +107,19 @@ Or directly, without make:
     typedef void (*TreeVisitFn)(int key, void* user);
     int tree_bfs(const Tree* t, TreeVisitFn cb, void* user);
 
+### hash_algo.hpp
+
+    struct HashStats {
+        int capacity;
+        int size;
+        int min_chain;     /* 0 if table is empty */
+        int max_chain;
+        int empty_buckets;
+        double load_factor; /* size / capacity */
+    };
+
+    int hash_stats(const Hash* h, HashStats* out);
+
 ## REPL
 
 `src/repl.cpp` is an interactive front-end to the three structures.
@@ -138,12 +151,12 @@ Commands:
 
 `draw` prints the live structure as ASCII:
 
-- **tree** — indented BST with `|--` / `` `-- `` branches, followed by
+- **tree** -  indented BST with `|--` / `` `-- `` branches, followed by
   `size=` and `height=`.
-- **list** — `head [k] <-> [k] <-> ... tail`, collapsed with
+- **list** -  `head [k] <-> [k] <-> ... tail`, collapsed with
   `... (N more) ...` when larger than `LIST_DRAW_MAX` (10), followed
   by `size=`.
-- **hash** — one line per bucket, `[ i] k -> k -> ...` or `(empty)`,
+- **hash** -  one line per bucket, `[ i] k -> k -> ...` or `(empty)`,
   followed by `load factor: d.dd`.
 
 All draw routines take `const` pointers and never mutate.
@@ -198,6 +211,9 @@ extension only warns.
   then swaps `head`/`tail`. `middle` is two-pointer; for even size
   returns the lower middle (`fast = head->next`). `sort` is stable
   merge sort over `next`, then rebuilds `prev`, `tail`, `size`.
+- `hash_algo`: one pass over buckets. `min_chain` counts non-empty
+  buckets only; for an empty table it is 0, same as `max_chain`.
+  `load_factor = size / capacity` as `double`.
 
 ## Tests
 
@@ -236,11 +252,18 @@ extension only warns.
 
 `list_algo_test.cpp` covers:
 
-- reverse: empty, one, even, odd — checks head/tail/prev/next
+- reverse: empty, one, even, odd -  checks head/tail/prev/next
 - middle: empty, one, odd, even (lower middle)
 - sort: empty, one, reverse input, sorted input, duplicates
 - prev-chain: `check_forward` walks head->tail and verifies
   `cur->prev == prev` and `l->tail == last`
+
+`hash_algo_test.cpp` covers:
+
+- empty: capacity 8, all counters zero, `empty_buckets == 8`
+- all in one bucket: capacity 1, three keys, `min == max == 3`
+- spread: capacity 8, eight keys, fields consistent
+- bad args: `NULL` h / `NULL` out -> -1
 
 No framework. `assert` from `<assert.h>`.
 

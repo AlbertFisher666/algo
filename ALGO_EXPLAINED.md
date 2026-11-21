@@ -1,17 +1,19 @@
 **ALGO_EXPLAINED.md**
-Полный разбор библиотеки algo: от C++-минимума до REPL.
+Полный разбор библиотеки algo: от C++-минимума до REPL и слоя алгоритмов.
 Стиль: 80s C-flavoured C++.
 Это не исходник, а объяснение по README.md и .cpp/.hpp.
 
-# algo — как устроена система
+# algo - как устроена система
 
-**Статус:** experiment. Not a product. No GitHub (yet).
+**Статус:** experiment. Not a product. Private repo:
+https://github.com/AlbertFisher666/algo
 
-Проект `algo` — маленькая библиотека алгоритмов и структур данных:
-BST, двусвязный список и хеш-таблица с цепочками. Сверху — интерактивный
-REPL с ASCII-диаграммами и сохранением/загрузкой в текстовый `.repl`.
+Проект `algo` - маленькая библиотека алгоритмов и структур данных:
+BST, двусвязный список и хеш-таблица с цепочками. Сверху - слой
+алгоритмов над каждой структурой (`*_algo`) и интерактивный REPL
+с ASCII-диаграммами и сохранением/загрузкой в текстовый `.repl`.
 
-Главная особенность: это C++ только по факту компиляции. Внутри —
+Главная особенность: это C++ только по факту компиляции. Внутри -
 стиль «80s C-flavoured C++»: `struct`, свободные функции, `new/delete`,
 `NULL`, `printf`, `FILE*`, фиксированные буферы. Нет `iostream`,
 `std::string`, STL-контейнеров, классов с конструкторами/деструкторами,
@@ -23,9 +25,9 @@ REPL с ASCII-диаграммами и сохранением/загрузко�
 
 ### 1.1. Единицы трансляции, заголовки и исходники
 
-Каждый `.cpp` — отдельная **единица трансляции**. Компилятор обрабатывает
-её независимо. Заголовки `.hpp` — это «контракты»: объявления структур и
-функций. Исходники `.cpp` — определения функций.
+Каждый `.cpp` - отдельная **единица трансляции**. Компилятор обрабатывает
+её независимо. Заголовки `.hpp` - это «контракты»: объявления структур и
+функций. Исходники `.cpp` - определения функций.
 
 Схема:
 
@@ -33,7 +35,7 @@ REPL с ASCII-диаграммами и сохранением/загрузко�
 include/algo/tree.hpp   -> объявляет struct TreeNode, struct Tree, API
 src/tree.cpp            -> включает tree.hpp и реализует API
 tests/tree_test.cpp     -> включает tree.hpp, вызывает API, имеет main()
-src/repl.cpp            -> включает все три заголовка и использует API
+src/repl.cpp            -> включает все заголовки и использует API
 ```
 
 `#include "algo/tree.hpp"` ищется относительно `-I include`. Поэтому
@@ -52,9 +54,9 @@ src/repl.cpp            -> включает все три заголовка и 
 единицу трансляции. Без неё структуры и прототипы могли бы определиться
 дважды.
 
-### 1.2. `struct` — это просто набор полей
+### 1.2. `struct` - это просто набор полей
 
-В проекте нет классов. `struct TreeNode` — это описание layout:
+В проекте нет классов. `struct TreeNode` - это описание layout:
 
 ```cpp
 struct TreeNode {
@@ -82,7 +84,7 @@ struct Tree {
 
 ### 1.3. Указатели, стек и куча
 
-Указатель хранит адрес. `TreeNode*` — адрес узла в памяти. `NULL` —
+Указатель хранит адрес. `TreeNode*` - адрес узла в памяти. `NULL` -
 нулевой указатель, «никуда не указывает».
 
 Локальные переменные вроде `Tree t;` в тестах и `Tree g_tree;` в REPL
@@ -100,7 +102,7 @@ delete n;
 ```
 
 Это не `malloc/free`. Проект использует C++-механизм `new/delete`, но
-без умных указателей. Вся ответственность за освобождение — на коде.
+без умных указателей. Вся ответственность за освобождение - на коде.
 
 ### 1.4. `const`
 
@@ -114,17 +116,25 @@ void tree_print(const Tree* t);
 ```
 
 Это не защита от всех ошибок, но контракт: find/height/print не мутируют
-дерево. `hash_find` тоже принимает `const Hash*`.
+дерево. `hash_find` тоже принимает `const Hash*`. Функции `*_algo`,
+которые только читают структуру (`tree_validate`, `tree_min/max`,
+`tree_to_array_inorder`, `tree_bfs`, `hash_stats`), тоже принимают
+`const*`.
 
 ### 1.5. Рекурсия и итерация
 
 В проекте есть и то, и другое:
 
-- `tree_insert` — итеративный, через `TreeNode**`.
-- `tree_remove` — итеративный поиск + итеративный `tree_detach_min`.
-- `tree_free`, `tree_height`, `tree_print` — рекурсивные.
-- `list_free`, `list_find`, `list_remove` — итеративные.
-- `hash_*` — итеративные.
+- `tree_insert` - итеративный, через `TreeNode**`.
+- `tree_remove` - итеративный поиск + итеративный `tree_detach_min`.
+- `tree_free`, `tree_height`, `tree_print` - рекурсивные.
+- `list_free`, `list_find`, `list_remove` - итеративные.
+- `hash_*` - итеративные.
+- `tree_algo`: `validate`, `to_array_inorder`, `build_balanced` -
+  рекурсивные; `min/max`, `bfs` - итеративные.
+- `list_algo`: `reverse`, `middle` - итеративные; `sort` - рекурсивный
+  merge sort.
+- `hash_algo`: `hash_stats` - итеративный, один проход по бакетам.
 
 Рекурсия удобна для дерева, но на очень глубоком дереве может переполнить
 стек. README отдельно подчёркивает: `tree_insert` итеративный, поэтому
@@ -144,10 +154,10 @@ static Hash g_hash;
 ```
 
 `static` на файловом уровне даёт внутреннюю линковку: эти переменные
-видны только внутри `repl.cpp`. `enum Kind` — тег, какая структура сейчас
+видны только внутри `repl.cpp`. `enum Kind` - тег, какая структура сейчас
 жива. Одновременно активна ровно одна.
 
-`teardown()` — главная точка уничтожения живой структуры:
+`teardown()` - главная точка уничтожения живой структуры:
 
 ```cpp
 static void teardown(void) {
@@ -165,12 +175,12 @@ static void teardown(void) {
 
 REPL не использует `std::cin`/`std::cout`. Используются:
 
-- `printf` — вывод;
-- `fgets` — чтение строки в фиксированный буфер;
-- `FILE*`, `fopen`, `fclose`, `fprintf` — save/load;
-- `strcmp`, `strncmp`, `strlen`, `memmove` — строки;
-- `strtol` — разбор целых;
-- `errno`, `strerror` — ошибки.
+- `printf` - вывод;
+- `fgets` - чтение строки в фиксированный буфер;
+- `FILE*`, `fopen`, `fclose`, `fprintf` - save/load;
+- `strcmp`, `strncmp`, `strlen`, `memmove` - строки;
+- `strtol` - разбор целых;
+- `errno`, `strerror` - ошибки.
 
 Буферы фиксированные: `char line[256]`, `char tok[64]`. Это стиль проекта,
 но у него есть цена: очень длинная строка будет прочитана частями, а
@@ -181,26 +191,36 @@ REPL не использует `std::cin`/`std::cout`. Используются:
 ## 2. Карта проекта
 
 ```text
-include/algo/tree.hpp   BST — контракт
-include/algo/list.hpp   DLL — контракт
-include/algo/hash.hpp   hash — контракт
-src/tree.cpp            BST — реализация
-src/list.cpp            DLL — реализация
-src/hash.cpp            hash — реализация
-src/repl.cpp            интерактивный REPL
-tests/tree_test.cpp     тесты BST
-tests/list_test.cpp     тесты DLL
-tests/hash_test.cpp     тесты hash
-Makefile                правила сборки
+include/algo/tree.hpp        BST - контракт
+include/algo/list.hpp        DLL - контракт
+include/algo/hash.hpp        hash - контракт
+include/algo/tree_algo.hpp   BST algorithms - контракт
+include/algo/list_algo.hpp   DLL algorithms - контракт
+include/algo/hash_algo.hpp   hash introspection - контракт
+src/tree.cpp                 BST - реализация
+src/list.cpp                 DLL - реализация
+src/hash.cpp                 hash - реализация
+src/tree_algo.cpp            BST algorithms - реализация
+src/list_algo.cpp            DLL algorithms - реализация
+src/hash_algo.cpp            hash introspection - реализация
+src/repl.cpp                 интерактивный REPL
+tests/tree_test.cpp          тесты BST
+tests/list_test.cpp          тесты DLL
+tests/hash_test.cpp          тесты hash
+tests/tree_algo_test.cpp     тесты tree_algo
+tests/list_algo_test.cpp     тесты list_algo
+tests/hash_algo_test.cpp     тесты hash_algo
+Makefile                     правила сборки
 ```
 
 Поток данных:
 
 ```text
 tree_test.cpp / list_test.cpp / hash_test.cpp
+tree_algo_test.cpp / list_algo_test.cpp / hash_algo_test.cpp
         |
         v
-   заголовок API
+   заголовки API
         |
         v
    src/*.cpp  --->  new/delete, указатели, printf
@@ -209,7 +229,7 @@ tree_test.cpp / list_test.cpp / hash_test.cpp
 src/repl.cpp ---> команды пользователя, draw, save/load
 ```
 
-Тесты и REPL — это две разные «верхушки» над одной библиотекой.
+Тесты и REPL - это две разные «верхушки» над одной библиотекой.
 
 ---
 
@@ -232,11 +252,18 @@ make test
 all tests passed
 ```
 
-Сборка REPL:
+Сборка REPL через Makefile:
+
+```sh
+make repl
+```
+
+Или напрямую:
 
 ```sh
 g++ -std=c++17 -O2 -Wall -Wextra -I include \
     src/repl.cpp src/tree.cpp src/list.cpp src/hash.cpp \
+    src/tree_algo.cpp src/list_algo.cpp src/hash_algo.cpp \
     -o build/repl
 ```
 
@@ -248,12 +275,15 @@ g++ -std=c++17 -O2 -Wall -Wextra -I include \
 
 Флаги:
 
-- `-std=c++17` — стандарт;
-- `-O2` — оптимизация;
-- `-Wall -Wextra` — предупреждения;
-- `-I include` — путь к заголовкам;
-- несколько `.cpp` — потому что это отдельные единицы трансляции, их
+- `-std=c++17` - стандарт;
+- `-O2` - оптимизация;
+- `-Wall -Wextra` - предупреждения;
+- `-I include` - путь к заголовкам;
+- несколько `.cpp` - потому что это отдельные единицы трансляции, их
   надо скомпоновать линковщиком в один исполняемый файл.
+
+CI (`.github/workflows/ci.yml`) гоняет `make` и `make test` на Ubuntu
+при каждом push и pull request.
 
 ---
 
@@ -276,9 +306,9 @@ void tree_print(const Tree* t);
 
 Смысл кодов:
 
-- `tree_insert`: `0` — вставлено, `-1` — дубликат/ошибка.
-- `tree_find`: `1` — есть, `0` — нет.
-- `tree_remove`: `0` — удалено, `-1` — не найдено.
+- `tree_insert`: `0` - вставлено, `-1` - дубликат/ошибка.
+- `tree_find`: `1` - есть, `0` - нет.
+- `tree_remove`: `0` - удалено, `-1` - не найдено.
 - `tree_height`: `0` для пустого дерева.
 - `tree_print`: in-order, то есть по возрастанию.
 
@@ -314,8 +344,65 @@ int  hash_remove(Hash* h, int key);
 void hash_print(const Hash* h);
 ```
 
-`buckets` — массив указателей на головы цепочек. `capacity` фиксируется
-при `hash_init`. `size` — число ключей. Ресайза нет.
+`buckets` - массив указателей на головы цепочек. `capacity` фиксируется
+при `hash_init`. `size` - число ключей. Ресайза нет.
+
+### 4.4. `tree_algo.hpp`
+
+```cpp
+int tree_validate(const Tree* t);
+int tree_min(const Tree* t, int* out);
+int tree_max(const Tree* t, int* out);
+int tree_to_array_inorder(const Tree* t, int* buf, int cap);
+int tree_from_sorted_array(Tree* t, const int* keys, int n);
+int tree_balance(Tree* t);
+
+typedef void (*TreeVisitFn)(int key, void* user);
+int tree_bfs(const Tree* t, TreeVisitFn cb, void* user);
+```
+
+Коды:
+
+- `tree_validate`: `1` - BST-инвариант выполнен, `0` - нарушен или `t == NULL`.
+- `tree_min/max`: `1` - записано в `*out`, `0` - пусто или `out == NULL`.
+- `tree_to_array_inorder`: число записанных ключей (`== t->size`) или `-1`.
+- `tree_from_sorted_array`: `0` - OK, `-1` - ошибка. Требует пустое дерево.
+- `tree_balance`: `0` - OK, `-1` - ошибка.
+- `tree_bfs`: число посещённых узлов.
+
+### 4.5. `list_algo.hpp`
+
+```cpp
+int list_reverse(List* l);
+ListNode* list_middle(List* l);
+int list_sort(List* l);
+```
+
+Коды:
+
+- `list_reverse`: `0` - OK, `-1` - `l == NULL`.
+- `list_middle`: узел или `NULL` для пустого списка; для чётного размера
+  возвращает **нижнюю** середину (`1..4` → `2`).
+- `list_sort`: `0` - OK, `-1` - `l == NULL`. Stable merge sort.
+
+### 4.6. `hash_algo.hpp`
+
+```cpp
+struct HashStats {
+    int capacity;
+    int size;
+    int min_chain;     /* 0 if table is empty */
+    int max_chain;
+    int empty_buckets;
+    double load_factor; /* size / capacity */
+};
+
+int hash_stats(const Hash* h, HashStats* out);
+```
+
+`hash_stats`: `0` - OK, `-1` - `h == NULL`, `out == NULL` или
+`h->capacity <= 0`. `min_chain` считается только по непустым бакетам
+и равен `0` для пустой таблицы.
 
 ---
 
@@ -360,7 +447,7 @@ int tree_find(const Tree* t, int key) {
 }
 ```
 
-Итеративный спуск по BST-свойству: меньше — налево, больше — направо.
+Итеративный спуск по BST-свойству: меньше - налево, больше - направо.
 `const` подчёркивает, что поиск не меняет дерево.
 
 ### 5.3. Высота
@@ -374,7 +461,7 @@ static int tree_height_node(const TreeNode* n) {
 }
 ```
 
-Высота пустого дерева — `0`, листа — `1`. Рекурсивно берётся максимум
+Высота пустого дерева - `0`, листа - `1`. Рекурсивно берётся максимум
 из высот поддеревьев плюс единица.
 
 ### 5.4. Вставка через `TreeNode**`
@@ -397,7 +484,7 @@ int tree_insert(Tree* t, int key) {
 }
 ```
 
-`slot` — это указатель на указатель. Он хранит адрес того поля-указателя,
+`slot` - это указатель на указатель. Он хранит адрес того поля-указателя,
 куда нужно положить новый узел. Если дерево пустое, `slot` указывает на
 `t->root`. Если идём налево, `slot` становится адресом `(*slot)->left`.
 Когда нашли `NULL`, запись `*slot = new TreeNode` сразу привязывает новый
@@ -419,9 +506,9 @@ if (*slot == NULL) return -1;
 
 Дальше три случая:
 
-1. **Лист** — просто заменить указатель на `NULL` и удалить узел.
-2. **Один ребёнок** — заменить указатель на этого ребёнка и удалить узел.
-3. **Два ребёнка** — заменить ключ узла на минимум из правого поддерева,
+1. **Лист** - просто заменить указатель на `NULL` и удалить узел.
+2. **Один ребёнок** - заменить указатель на этого ребёнка и удалить узел.
+3. **Два ребёнка** - заменить ключ узла на минимум из правого поддерева,
    затем отсоединить этот минимум.
 
 Минимум ищется итеративно:
@@ -498,7 +585,7 @@ l->size++;
 ```
 
 Если список пуст, новый узел становится и головой, и хвостом. Иначе
-старый хвост ссылается на новый. `prev` нового — старый хвост.
+старый хвост ссылается на новый. `prev` нового - старый хвост.
 
 ### 6.3. `push_front`
 
@@ -550,7 +637,7 @@ int hash_init(Hash* h, int capacity) {
 }
 ```
 
-`buckets` — массив указателей. Каждый бакет изначально пуст. Ёмкость
+`buckets` - массив указателей. Каждый бакет изначально пуст. Ёмкость
 фиксируется и не меняется.
 
 ### 7.2. FNV-1a
@@ -602,14 +689,79 @@ h->size--;
 Это позволяет удалить узел из головы или из середины цепочки без
 отдельного `prev`.
 
-`hash_print` печатает по бакетам, внутри бакета — в порядке цепочки.
+`hash_print` печатает по бакетам, внутри бакета - в порядке цепочки.
 Это не отсортированный вывод.
 
 ---
 
-## 8. REPL: `src/repl.cpp`
+## 8. Слой алгоритмов: `*_algo.cpp`
 
-### 8.1. Одна живая структура
+### 8.1. `tree_algo.cpp`
+
+**`tree_validate`** - проверка BST-инварианта. Рекурсивный
+`validate_node(n, lo, hi)` принимает открытые границы `long long`:
+
+```cpp
+static int validate_node(const TreeNode* n, long long lo, long long hi) {
+    if (n == NULL) return 1;
+    if ((long long)n->key <= lo || (long long)n->key >= hi) return 0;
+    if (!validate_node(n->left,  lo, (long long)n->key)) return 0;
+    if (!validate_node(n->right, (long long)n->key, hi)) return 0;
+    return 1;
+}
+```
+
+Стартовые границы - `-2147483648LL - 1` и `2147483647LL + 1`, то есть
+чуть шире `int`. Строгие `<`/`>` означают, что дубликаты недопустимы:
+повтор ключа не может быть `> lo` и `< hi` одновременно на одной стороне
+родителя. Это согласовано с `tree_insert` (он отвергает duplicate).
+
+**`tree_min` / `tree_max`** - итеративный спуск влево/вправо до упора.
+`const TreeNode*`, не мутируют.
+
+**`tree_to_array_inorder`** - рекурсивный in-order, пишет ключи в `buf`,
+возвращает `pos`. Требует `cap >= t->size`.
+
+**`tree_from_sorted_array`** - рекурсивный `build_balanced(a, lo, hi)`:
+`mid = lo + (hi - lo) / 2`, левое и правое поддеревья рекурсивно. Даёт
+идеально сбалансированное дерево, глубина рекурсии `O(log n)`.
+Требует пустое дерево (`root == NULL && size == 0`).
+
+**`tree_balance`** - in-order → массив → `tree_free` → `from_sorted_array`.
+O(n) время, O(n) память.
+
+**`tree_bfs`** - очередь на массиве `const TreeNode*[t->size]`,
+`head`/`tail` индексы, без `std::queue`. Колбэк `cb(key, user)` на каждый
+узел, возвращает число посещённых.
+
+### 8.2. `list_algo.cpp`
+
+**`list_reverse`** - итеративно, swap `prev`/`next` по узлам, затем swap
+`head`/`tail`.
+
+**`list_middle`** - two-pointer. Для чётного размера возвращает **нижнюю**
+середину: `slow = head`, `fast = head->next` в старте. Защита от
+`l->head == NULL`, потому что `head->next` разыменовывает `head`.
+
+**`list_sort`** - stable merge sort по `next`. `list_merge_sorted(left,
+right, tail)` использует `<=` (stable), восстанавливает `prev` и пишет
+последний узел в `*tail`. `list_sort_chain(head, tail)` рекурсивно
+делит пополам (нижняя середина), сортирует половины, сливает. Глубина
+рекурсии `O(log n)`. После сортировки `tail` восстановлен, `size` не
+меняется (то же число узлов).
+
+### 8.3. `hash_algo.cpp`
+
+**`hash_stats`** - один проход по бакетам. Для каждого бакета считается
+длина цепочки. `min_chain` - минимум по непустым (`-1` до первого
+непустого, потом `0` для пустой таблицы). `max_chain` - максимум.
+`empty_buckets` - число пустых. `load_factor = (double)size / capacity`.
+
+---
+
+## 9. REPL: `src/repl.cpp`
+
+### 9.1. Одна живая структура
 
 `g_kind` говорит, что сейчас живо. `teardown()` уничтожает ровно её.
 Команды создания сначала вызывают `teardown()`, поэтому старая структура
@@ -623,10 +775,10 @@ free      -> teardown();
 quit/exit -> teardown(); выход.
 ```
 
-### 8.2. Разбор команд
+### 9.2. Разбор команд
 
 `main` читает строку через `fgets`, убирает `\n`/`\r`, затем `next_token`
-выделяет первое слово. Дальше — плоская цепочка `strcmp`:
+выделяет первое слово. Дальше - плоская цепочка `strcmp`:
 
 ```cpp
 if (strcmp(tok, "quit") == 0 || strcmp(tok, "exit") == 0) ...
@@ -654,25 +806,25 @@ static int parse_whole_int(const char* s, int* out) {
 Он требует, чтобы строка была целиком одним целым: без «хвостов»,
 без пустоты, без переполнения `int`.
 
-### 8.3. Команды
+### 9.3. Команды
 
-- `tree`, `list`, `hash [cap]` — создать структуру.
-- `insert <k>` — для tree/hash вставка, для list — `push_back`.
-- `find <k>` — поиск во всех.
-- `remove <k>` — удаление во всех.
-- `push_back <k>`, `push_front <k>` — только list.
-- `print` — печать ключей.
-- `draw | schema | ascii` — ASCII-диаграмма.
-- `size` — текущий размер.
-- `height` — высота, только tree.
-- `save <file.repl>`, `load <file.repl>` — сохранение/загрузка.
-- `free` — уничтожить текущую структуру.
+- `tree`, `list`, `hash [cap]` - создать структуру.
+- `insert <k>` - для tree/hash вставка, для list - `push_back`.
+- `find <k>` - поиск во всех.
+- `remove <k>` - удаление во всех.
+- `push_back <k>`, `push_front <k>` - только list.
+- `print` - печать ключей.
+- `draw | schema | ascii` - ASCII-диаграмма.
+- `size` - текущий размер.
+- `height` - высота, только tree.
+- `save <file.repl>`, `load <file.repl>` - сохранение/загрузка.
+- `free` - уничтожить текущую структуру.
 - `help`, `quit | exit`.
 
 `need(Kind, what)` проверяет, что команда применима к текущей структуре,
 и печатает ошибку с ожидаемым и текущим типом.
 
-### 8.4. ASCII-диаграммы
+### 9.4. ASCII-диаграммы
 
 Все draw-функции принимают `const`-указатели и не мутируют структуры.
 
@@ -689,7 +841,7 @@ static int parse_whole_int(const char* s, int* out) {
 size=7 height=3
 ```
 
-Ветка `|--` — не последний ребёнок, `` `-- `` — последний. Префикс
+Ветка `|--` - не последний ребёнок, `` `-- `` - последний. Префикс
 накапливает `|   ` или `    ` для отступов.
 
 **list.** Печатается как:
@@ -716,7 +868,7 @@ Load factor считается целочисленно:
 `lf100 = size * 100 / capacity`, затем печатается `lf100 / 100` и
 `lf100 % 100`.
 
-### 8.5. Save: `.repl`
+### 9.5. Save: `.repl`
 
 `save_current`:
 
@@ -739,7 +891,7 @@ Load factor считается целочисленно:
 `t->size`, затем построчно печатаются. Для списка и хеша можно писать
 сразу в `FILE*`.
 
-### 8.6. Load: `.repl`
+### 9.6. Load: `.repl`
 
 `load_from` устроен осторожно: **сначала строит временную структуру**,
 и только при полном успехе заменяет живую. Если файл битый, живая
@@ -749,14 +901,14 @@ Load factor считается целочисленно:
 
 1. Проверить расширение, предупредить при отсутствии `.repl`.
 2. Открыть файл.
-3. Прочитать первую непустую некомментированную строку — это тег.
+3. Прочитать первую непустую некомментированную строку - это тег.
 4. `parse_tag` понимает:
    - `tree`;
    - `list`;
    - `hash` или `hash <capacity>`; по умолчанию capacity = 16.
 5. Создать временные `Tree t`, `List l`; `Hash h` инициализируется
    лениво при первом ключе.
-6. Читать остальные строки: каждая — один целый ключ.
+6. Читать остальные строки: каждая - один целый ключ.
 7. Для tree/hash дубликаты предупреждаются и пропускаются.
    Для list дубликаты разрешены.
 8. При ошибке разбора ключа освободить временные структуры и вернуть `-1`.
@@ -788,9 +940,9 @@ tree
 
 ---
 
-## 9. Тесты
+## 10. Тесты
 
-Тесты — отдельные программы с `main` и `assert` из `<assert.h>`.
+Тесты - отдельные программы с `main` и `assert` из `<assert.h>`.
 Никакого фреймворка.
 
 `tree_test.cpp` проверяет:
@@ -815,14 +967,37 @@ tree
 - find: есть/нет;
 - remove: есть/нет.
 
+`tree_algo_test.cpp` проверяет:
+
+- validate: пустое, хорошее, битое;
+- min/max: пустое, крайние ключи;
+- to_array_inorder: отсортировано, длина == size;
+- from_sorted_array: сбалансировано, validate;
+- balance: вырожденное 1..7 → высота 3, validate;
+- bfs: уровне-порядок через колбэк.
+
+`list_algo_test.cpp` проверяет:
+
+- reverse: пусто, один, чётное, нечётное - head/tail/prev/next;
+- middle: пусто, один, нечётное, чётное (нижняя);
+- sort: пусто, один, обратный вход, отсортированный вход, дубликаты;
+- `check_forward` проверяет `prev`-цепочку и `tail`.
+
+`hash_algo_test.cpp` проверяет:
+
+- пустая: capacity 8, всё по нулям, `empty_buckets == 8`;
+- все в одном бакете: capacity 1, три ключа, `min == max == 3`;
+- spread: capacity 8, восемь ключей, поля согласованы;
+- bad args: `NULL` h / `NULL` out → `-1`.
+
 `assert` при провале просто abort-ит программу. `main` печатает
-`>>> test_name`, затем запускает тест. В конце — `all tests passed`
-(или `all list/hash tests passed`). REPL автоматическими тестами пока
-не покрыт — README говорит, что он проверяется вручную.
+`>>> test_name`, затем запускает тест. В конце - `all tests passed`
+(или `all <struct> tests passed`). REPL автоматическими тестами пока
+не покрыт - README говорит, что он проверяется вручную.
 
 ---
 
-## 10. Как всё работает вместе: пример
+## 11. Как всё работает вместе: пример
 
 ```text
 > tree
@@ -861,7 +1036,7 @@ load может отличаться от исходного, если исхо�
 
 ---
 
-## 11. Важные детали, ограничения и подводные камни
+## 12. Важные детали, ограничения и подводные камни
 
 1. **Нет RAII.** `Tree`, `List`, `Hash` не освобождают себя сами.
    Нужно явно вызывать `tree_free`, `list_free`, `hash_free`.
@@ -875,12 +1050,13 @@ load может отличаться от исходного, если исхо�
    это эксперимент, а не продакшн.
 5. **Рекурсивные `tree_free`, `tree_height`, `tree_print`.** На очень
    глубоком дереве возможен stack overflow. Итеративная только вставка
-   (и удаление).
+   (и удаление). В `tree_algo` рекурсивны `validate`, `to_array_inorder`,
+   `build_balanced`; в `list_algo` - `sort`.
 6. **Хеш без ресайза.** `capacity` фиксирована. При большом `size`
    цепочки растут, load factor растёт.
 7. **`hash_fn` зависит от endianness и `sizeof(int)`.** Для учебной
    задачи это нормально, но не переносимая криптография.
-8. **`hash_print` не сортирует.** Порядок — по бакетам и цепочкам.
+8. **`hash_print` не сортирует.** Порядок - по бакетам и цепочкам.
 9. **`list_find` принимает `List*`, а не `const List*`.** Хотя не мутирует;
    это API-особенность.
 10. **REPL-буферы фиксированные.** `fgets` в `char line[256]`; очень
@@ -892,15 +1068,24 @@ load может отличаться от исходного, если исхо�
     отказываются работать с другим расширением.
 13. **Дубликаты при load.** Для tree/hash предупреждаются и
     пропускаются; для list разрешены.
-14. **`teardown()` — единственная точка уничтожения живой структуры.**
+14. **`teardown()` - единственная точка уничтожения живой структуры.**
     Временные структуры при ошибке load освобождаются отдельно, но
     живая не трогается до успеха.
+15. **`*_algo` не меняют старые API.** `tree.hpp`, `list.hpp`,
+    `hash.hpp` не тронуты; `*_algo` - отдельные модули (ROADMAP §0.6).
+16. **`tree_algo` использует `const TreeNode**` в BFS-очереди.**
+    Это строже, чем `TreeNode**`, и соответствует контракту `const Tree*`.
+17. **`list_middle` для чётного размера возвращает нижнюю середину.**
+    `fast = head->next` в старте; это зафиксировано в тесте
+    `test_middle_even` (`1..4` → `2`).
+18. **`hash_stats.min_chain` - только по непустым бакетам.**
+    `0` для пустой таблицы; это зафиксировано в комментарии в
+    `hash_algo.hpp` и в тесте `test_empty`.
 
 ---
 
-## 12. Итоговая схема
+## 13. Итоговая схема
 
-```text
                  +-------------------+
                  |      repl.cpp     |
                  |  g_kind, teardown |
@@ -918,14 +1103,25 @@ load может отличаться от исходного, если исхо�
           |                |                |
           +----------------+----------------+
                            |
+          +----------------+----------------+
+          |                |                |
+          v                v                v
+     tree_algo.cpp    list_algo.cpp    hash_algo.cpp
+     validate         reverse          hash_stats
+     min/max          middle
+     inorder/from     sort (stable
+     balance          merge)
+     bfs
+          |
+          +----------------+----------------+
+                           |
                      printf / FILE*
                      fixed buffers
                      no STL, no RAII
-```
 
 Это и есть вся система: три ручные структуры данных с C-подобным API,
-тонкий REPL-слой с одной живой структурой, ASCII-визуализация,
-текстовый save/load и assert-тесты.
+слой алгоритмов над каждой, тонкий REPL-слой с одной живой структурой,
+ASCII-визуализация, текстовый save/load и assert-тесты.
 
 /* ============================================================
  * Original code and README:
@@ -934,4 +1130,3 @@ load может отличаться от исходного, если исхо�
  *
  * This explanation is generated from the provided sources.
  * ============================================================ */
-```
