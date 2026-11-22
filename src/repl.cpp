@@ -11,8 +11,11 @@
  * Style: 80s C-flavoured C++. No iostream, no std::string.
  * ============================================================ */
 
+#include "algo/hash_algo.hpp"
 #include "algo/hash.hpp"
+#include "algo/list_algo.hpp"
 #include "algo/list.hpp"
+#include "algo/tree_algo.hpp"
 #include "algo/tree.hpp"
 
 #include <errno.h>
@@ -256,6 +259,53 @@ static void cmd_height(void) {
     printf("%d\n", tree_height(&g_tree));
 }
 
+static void cmd_validate(void) {
+    if (!need(KIND_TREE, "validate")) return;
+        printf(tree_validate(&g_tree) ? "valid\n" :  "BROKEN\n");
+}
+
+static void cmd_min(void) {
+    if (!need(KIND_TREE, "min")) return;
+    int v;
+    if (tree_min(&g_tree, &v)) printf("%d\n", v);
+    else                       printf("(empty)\n");
+}
+
+static void cmd_max(void) {
+    if (!need(KIND_TREE, "max")) return;
+    int v;
+    if (tree_max(&g_tree, &v)) printf("%d\n", v);
+    else                       printf("(empty)\n");
+}
+
+static void cmd_balance(void) {
+    if (!need(KIND_TREE, "balance")) return;
+    if (tree_balance(&g_tree) == 0) printf("ok\n");
+    else                            printf("error: balance failed\n");
+}
+
+static void cmd_reverse(void) {
+    if (!need(KIND_LIST, "reverse")) return;
+    list_reverse(&g_list);
+    printf("ok\n");
+}
+
+static void cmd_sort(void) {
+    if (!need(KIND_LIST, "sort")) return;
+    list_sort(&g_list);
+    printf("ok\n");
+}
+
+static void cmd_stats(void) {
+    if (!need(KIND_HASH, "stats")) return;
+    HashStats s;
+    if (hash_stats(&g_hash, &s) != 0) { printf("error: stats failed\n"); return; }
+    printf("capacity=%d size=%d\n", s.capacity, s.size);
+    printf("min_chain=%d max_chain=%d empty_buckets=%d\n",
+           s.min_chain, s.max_chain, s.empty_buckets);
+    printf("load_factor=%.2f\n", s.load_factor);
+}
+
 static void cmd_draw(void) {
     switch (g_kind) {
     case KIND_TREE: draw_tree(&g_tree); break;
@@ -285,6 +335,12 @@ static void cmd_help(void) {
         "  draw | schema | ascii    ASCII diagram of current structure\n"
         "  size                     current element count\n"
         "  height                   tree height\n"
+        "  validate                 tree: BST invariant check\n"
+        "  min | max                tree: min / max key\n"
+        "  balance                  tree: rebuild balanced\n"
+        "  reverse                  list: reverse in place\n"
+        "  sort                     list: stable merge sort\n"
+        "  stats                    hash: chain statistics\n"
         "  save <file.repl>         write current structure to a .repl file\n"
         "  load <file.repl>         read a .repl file into a new structure\n"
         "  free                     destroy current structure\n"
@@ -646,6 +702,21 @@ int main(void) {
             cmd_size();
         } else if (strcmp(tok, "height") == 0) {
             cmd_height();
+        } else if (strcmp(tok, "validate") == 0) {
+            cmd_validate();
+        } else if (strcmp(tok, "min") == 0) {
+            cmd_min();
+        } else if (strcmp(tok, "max") == 0) {
+            cmd_max();
+        } else if (strcmp(tok, "balance") == 0) {
+            cmd_balance();
+        } else if (strcmp(tok, "reverse") == 0) {
+            cmd_reverse();
+        } else if (strcmp(tok, "sort") == 0) {
+            cmd_sort();
+        } else if (strcmp(tok, "stats") == 0) {
+            cmd_stats();
+        } else if (strcmp(tok, "save") == 0) {
         } else if (strcmp(tok, "save") == 0) {
             if (*rest == '\0') { printf("error: save needs a file path\n"); continue; }
             save_current(rest);
