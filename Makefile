@@ -33,9 +33,9 @@ $(BUILD)/%_test: tests/%_test.cpp $(LIB_OBJS) | $(BUILD)
 
 repl: $(REPL_BIN)
 
-test: $(TEST_BINS)
+test: $(TEST_BINS) test-repl
 	@for t in $(TEST_BINS); do echo "=== $$t ==="; ./$$t || exit 1; done
-	@echo "all tests passed"
+	@echo "all unit tests passed"
 
 test-repl: $(REPL_BIN)
 	@bash tests/run_golden.sh

@@ -4,6 +4,7 @@
 # Normalization: strip prompts, replace file paths with <FILE>.
 
 set -e
+export LC_ALL=C
 REPL=./build/repl
 DIR=tests/repl_golden
 TMP=$(mktemp -d)
