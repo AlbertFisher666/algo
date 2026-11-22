@@ -1,0 +1,15 @@
+list created
+ok
+ok
+ok
+head [1] <-> [2] <-> [3] tail
+size=3
+ok
+head [3] <-> [2] <-> [1] tail
+size=3
+ok
+head [0] <-> [3] <-> [2] <-> [1] tail
+size=4
+ok
+head [0] <-> [1] <-> [2] <-> [3] tail
+size=4

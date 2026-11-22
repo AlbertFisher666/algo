@@ -1,0 +1,12 @@
+hash created (capacity 4)
+ok
+ok
+saved tests/repl_golden/hash.repl (2 keys)
+freed
+loaded tests/repl_golden/hash.repl (2 keys)
+hash (capacity=4, size=2)
+[ 0] (empty)
+[ 1] 20
+[ 2] (empty)
+[ 3] 10
+load factor: 0.50

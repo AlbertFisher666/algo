@@ -1,0 +1,8 @@
+hash 8
+insert 10
+insert 20
+insert 30
+stats
+draw
+remove 20
+stats

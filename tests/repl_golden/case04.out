@@ -1,0 +1,21 @@
+hash created (capacity 8)
+ok
+ok
+ok
+capacity=8 size=3
+min_chain=1 max_chain=1 empty_buckets=5
+load_factor=0.38
+hash (capacity=8, size=3)
+[ 0] (empty)
+[ 1] 20
+[ 2] (empty)
+[ 3] 30
+[ 4] (empty)
+[ 5] (empty)
+[ 6] (empty)
+[ 7] 10
+load factor: 0.37
+ok
+capacity=8 size=2
+min_chain=1 max_chain=1 empty_buckets=6
+load_factor=0.25

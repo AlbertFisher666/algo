@@ -1,0 +1,9 @@
+list created
+ok
+ok
+ok
+saved tests/repl_golden/list.repl (3 keys)
+freed
+loaded tests/repl_golden/list.repl (3 keys)
+head [1] <-> [2] <-> [3] tail
+size=3

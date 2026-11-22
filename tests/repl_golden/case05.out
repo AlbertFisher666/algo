@@ -1,0 +1,11 @@
+tree created
+ok
+ok
+ok
+saved tests/repl_golden/tree.repl (3 keys)
+freed
+loaded tests/repl_golden/tree.repl (3 keys)
+3
+`-- 5
+    `-- 8
+size=3 height=3

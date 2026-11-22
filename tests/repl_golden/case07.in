@@ -1,0 +1,7 @@
+hash 4
+insert 10
+insert 20
+save tests/repl_golden/hash.repl
+free
+load tests/repl_golden/hash.repl
+draw

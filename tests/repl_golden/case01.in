@@ -1,0 +1,14 @@
+tree
+insert 5
+insert 3
+insert 8
+insert 1
+insert 4
+insert 7
+insert 9
+draw
+validate
+min
+max
+height
+size

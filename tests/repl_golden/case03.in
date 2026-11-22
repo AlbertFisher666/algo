@@ -1,0 +1,11 @@
+list
+push_back 1
+push_back 2
+push_back 3
+draw
+reverse
+draw
+push_front 0
+draw
+sort
+draw

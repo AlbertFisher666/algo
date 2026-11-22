@@ -1,0 +1,8 @@
+tree
+insert 5
+insert 3
+insert 8
+save tests/repl_golden/tree.repl
+free
+load tests/repl_golden/tree.repl
+draw
