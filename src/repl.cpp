@@ -1,11 +1,14 @@
 /* ============================================================
  * repl.cpp
  * Interactive REPL for the algo library (tree / list / hash),
- * with ASCII diagrams and .repl save/load.
+ * with ASCII diagrams, .repl save/load, and batch modes.
  *
  * Build:
+ *   make repl
+ * or:
  *   g++ -std=c++17 -O2 -Wall -Wextra -I include \
  *       src/repl.cpp src/tree.cpp src/list.cpp src/hash.cpp \
+ *       src/tree_algo.cpp src/list_algo.cpp src/hash_algo.cpp \
  *       -o build/repl
  *
  * Style: 80s C-flavoured C++. No iostream, no std::string.
@@ -261,7 +264,7 @@ static void cmd_height(void) {
 
 static void cmd_validate(void) {
     if (!need(KIND_TREE, "validate")) return;
-        printf(tree_validate(&g_tree) ? "valid\n" :  "BROKEN\n");
+    printf(tree_validate(&g_tree) ? "valid\n" : "BROKEN\n");
 }
 
 static void cmd_min(void) {
@@ -350,24 +353,8 @@ static void cmd_help(void) {
 
 /* ============================================================
  * 4. Save / Load (.repl format)
- *
- * File layout:
- *
- *   # algo repl save
- *   # structure: tree
- *   tree
- *   5
- *   3
- *   8
- *
- * Lines starting with '#' are comments and are skipped on
- * load. The first non-comment non-blank line is the structure
- * tag: "tree", "list", or "hash <capacity>". Every following
- * non-blank non-comment line is exactly one integer key.
- * Leading and trailing whitespace on every line is ignored.
  * ============================================================ */
 
-/* Trim leading and trailing blanks in place. Returns buf. */
 static char* trim(char* buf) {
     char* s = buf;
     while (*s == ' ' || *s == '\t') s++;
@@ -381,9 +368,6 @@ static char* trim(char* buf) {
     return buf;
 }
 
-/* Parse a decimal integer that must consume the whole string.
- * Returns 1 on success, 0 on empty string, trailing junk,
- * or overflow. */
 static int parse_whole_int(const char* s, int* out) {
     if (s == NULL || *s == '\0') return 0;
     errno = 0;
@@ -396,18 +380,15 @@ static int parse_whole_int(const char* s, int* out) {
     return 1;
 }
 
-/* True iff path ends with ".repl". Used only to warn. */
 static int has_repl_ext(const char* path) {
     size_t n = strlen(path);
     return n >= 5 && strcmp(path + n - 5, ".repl") == 0;
 }
 
-/* Write one int per line. */
 static void save_write_keys(FILE* f, const int* keys, int n) {
     for (int i = 0; i < n; i++) fprintf(f, "%d\n", keys[i]);
 }
 
-/* In-order walk that fills a flat buffer of size t->size. */
 static void save_tree_keys(const TreeNode* n, int* buf, int* pos) {
     if (n == NULL) return;
     save_tree_keys(n->left, buf, pos);
@@ -444,8 +425,6 @@ static int save_hash(FILE* f, const Hash* h) {
     return 0;
 }
 
-/* Save the live structure. Returns 0 on OK, -1 on error.
- * Warns (but does not fail) if the path lacks a .repl extension. */
 static int save_current(const char* path) {
     if (g_kind == KIND_NONE) {
         printf("error: no structure\n");
@@ -488,8 +467,6 @@ static int save_current(const char* path) {
     return 0;
 }
 
-/* Read one non-blank non-comment line, trimmed.
- * Returns 1 if a data line was read into buf, 0 on EOF. */
 static int read_data_line(FILE* f, char* buf, int cap) {
     while (fgets(buf, cap, f) != NULL) {
         trim(buf);
@@ -499,8 +476,6 @@ static int read_data_line(FILE* f, char* buf, int cap) {
     return 0;
 }
 
-/* Parse the tag line. Returns the Kind on success, KIND_NONE
- * on error. Writes capacity for hash into *cap. */
 static Kind parse_tag(const char* line, int* cap) {
     if (strcmp(line, "tree") == 0) return KIND_TREE;
     if (strcmp(line, "list") == 0) return KIND_LIST;
@@ -519,9 +494,6 @@ static Kind parse_tag(const char* line, int* cap) {
     return KIND_NONE;
 }
 
-/* Load a .repl file into a fresh structure. The old structure
- * is destroyed only after the new one has been fully built, so
- * a broken file never loses live data. */
 static int load_from(const char* path) {
     if (!has_repl_ext(path)) {
         printf("warning: '%s' does not end with .repl\n", path);
@@ -547,7 +519,6 @@ static int load_from(const char* path) {
         return -1;
     }
 
-    /* Build into temporaries so a mid-file error is harmless. */
     Tree t;  tree_init(&t);
     List l;  list_init(&l);
     Hash h;  int hash_ready = 0;
@@ -596,7 +567,6 @@ static int load_from(const char* path) {
         return -1;
     }
 
-    /* Success: replace the live structure. */
     teardown();
     switch (k) {
     case KIND_TREE: g_tree = t; g_kind = KIND_TREE; break;
@@ -618,7 +588,6 @@ static int load_from(const char* path) {
  * 5. Parsing helpers
  * ============================================================ */
 
-/* Split *p into a token and the rest of the line. */
 static int next_token(char** p, char* tok, int tokcap, char** rest) {
     char* s = *p;
     while (*s == ' ' || *s == '\t') s++;
@@ -635,101 +604,185 @@ static int next_token(char** p, char* tok, int tokcap, char** rest) {
 }
 
 /* ============================================================
- * 6. Main loop
+ * 6. execute_line
+ *
+ * Dispatch one line. Returns:
+ *   0 - command executed (OK)
+ *   1 - command error (unknown command, bad arg, need() failed)
+ *   2 - quit / exit
+ *
+ * Modifies the line in place (trims \n, next_token moves
+ * pointers but does not write past the token).
  * ============================================================ */
 
-int main(void) {
+static int execute_line(char* line) {
+    size_t len = strlen(line);
+    while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
+        line[--len] = '\0';
+    }
+
+    char tok[64];
+    char* rest = NULL;
+    char* p = line;
+    if (!next_token(&p, tok, sizeof tok, &rest)) return 0;
+
+    if (strcmp(tok, "quit") == 0 || strcmp(tok, "exit") == 0) return 2;
+    if (strcmp(tok, "help") == 0)    { cmd_help(); return 0; }
+    if (strcmp(tok, "tree") == 0)    { cmd_tree(); return 0; }
+    if (strcmp(tok, "list") == 0)    { cmd_list(); return 0; }
+    if (strcmp(tok, "hash") == 0) {
+        int cap = 16;
+        if (*rest != '\0' && !parse_whole_int(rest, &cap)) {
+            printf("error: bad capacity\n"); return 1;
+        }
+        cmd_hash(cap); return 0;
+    }
+    if (strcmp(tok, "insert") == 0) {
+        int k;
+        if (!parse_whole_int(rest, &k)) { printf("error: insert needs an integer\n"); return 1; }
+        cmd_insert(k); return 0;
+    }
+    if (strcmp(tok, "find") == 0) {
+        int k;
+        if (!parse_whole_int(rest, &k)) { printf("error: find needs an integer\n"); return 1; }
+        cmd_find(k); return 0;
+    }
+    if (strcmp(tok, "remove") == 0) {
+        int k;
+        if (!parse_whole_int(rest, &k)) { printf("error: remove needs an integer\n"); return 1; }
+        cmd_remove(k); return 0;
+    }
+    if (strcmp(tok, "push_back") == 0) {
+        int k;
+        if (!parse_whole_int(rest, &k)) { printf("error: push_back needs an integer\n"); return 1; }
+        cmd_push_back(k); return 0;
+    }
+    if (strcmp(tok, "push_front") == 0) {
+        int k;
+        if (!parse_whole_int(rest, &k)) { printf("error: push_front needs an integer\n"); return 1; }
+        cmd_push_front(k); return 0;
+    }
+    if (strcmp(tok, "print") == 0) { cmd_print(); return 0; }
+    if (strcmp(tok, "draw") == 0 ||
+        strcmp(tok, "schema") == 0 ||
+        strcmp(tok, "ascii") == 0) { cmd_draw(); return 0; }
+    if (strcmp(tok, "size") == 0)   { cmd_size(); return 0; }
+    if (strcmp(tok, "height") == 0) { cmd_height(); return 0; }
+    if (strcmp(tok, "save") == 0) {
+        if (*rest == '\0') { printf("error: save needs a file path\n"); return 1; }
+        return save_current(rest) == 0 ? 0 : 1;
+    }
+    if (strcmp(tok, "load") == 0) {
+        if (*rest == '\0') { printf("error: load needs a file path\n"); return 1; }
+        return load_from(rest) == 0 ? 0 : 1;
+    }
+    if (strcmp(tok, "free") == 0) { cmd_free(); return 0; }
+    if (strcmp(tok, "validate") == 0) { cmd_validate(); return 0; }
+    if (strcmp(tok, "min") == 0)      { cmd_min(); return 0; }
+    if (strcmp(tok, "max") == 0)      { cmd_max(); return 0; }
+    if (strcmp(tok, "balance") == 0)  { cmd_balance(); return 0; }
+    if (strcmp(tok, "reverse") == 0)  { cmd_reverse(); return 0; }
+    if (strcmp(tok, "sort") == 0)     { cmd_sort(); return 0; }
+    if (strcmp(tok, "stats") == 0)    { cmd_stats(); return 0; }
+
+    printf("error: unknown command '%s' (try 'help')\n", tok);
+    return 1;
+}
+
+/* ============================================================
+ * 7. Batch modes
+ * ============================================================ */
+
+/* Split a string by ';' and execute each piece.
+ * Stops on the first error unless keep_going is set.
+ * A quit inside the string stops the batch and returns 0. */
+static int run_exec_string(char* s, int keep_going) {
+    int rc = 0;
+    char* start = s;
+    for (;;) {
+        char* semi = strchr(start, ';');
+        if (semi != NULL) *semi = '\0';
+        int r = execute_line(start);
+        if (r == 2) return 0;
+        if (r != 0) {
+            rc = 1;
+            if (!keep_going) return rc;
+        }
+        if (semi == NULL) break;
+        start = semi + 1;
+    }
+    return rc;
+}
+
+/* Read a file line by line, execute each line.
+ * Stops on the first error unless keep_going is set.
+ * A quit inside the file stops the script and returns 0. */
+static int run_script(const char* path, int keep_going) {
+    FILE* f = fopen(path, "r");
+    if (f == NULL) {
+        printf("error: cannot open '%s': %s\n", path, strerror(errno));
+        return 1;
+    }
+    char line[256];
+    int rc = 0;
+    while (fgets(line, sizeof line, f) != NULL) {
+        int r = execute_line(line);
+        if (r == 2) break;
+        if (r != 0) {
+            rc = 1;
+            if (!keep_going) break;
+        }
+    }
+    fclose(f);
+    return rc;
+}
+
+static void usage(const char* prog) {
+    printf("usage: %s [--exec \"cmd; cmd; ...\"] [--script FILE] [--keep-going]\n", prog);
+    printf("       (no args: interactive mode)\n");
+}
+
+/* ============================================================
+ * 8. main
+ * ============================================================ */
+
+int main(int argc, char** argv) {
+    const char* exec_str = NULL;
+    const char* script   = NULL;
+    int keep_going = 0;
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--exec") == 0 && i + 1 < argc) {
+            exec_str = argv[++i];
+        } else if (strcmp(argv[i], "--script") == 0 && i + 1 < argc) {
+            script = argv[++i];
+        } else if (strcmp(argv[i], "--keep-going") == 0) {
+            keep_going = 1;
+        } else if (strcmp(argv[i], "--help") == 0) {
+            usage(argv[0]); return 0;
+        } else {
+            usage(argv[0]); return 1;
+        }
+    }
+
+    if (exec_str != NULL) {
+        char buf[1024];
+        snprintf(buf, sizeof buf, "%s", exec_str);
+        return run_exec_string(buf, keep_going);
+    }
+    if (script != NULL) {
+        return run_script(script, keep_going);
+    }
+
     char line[256];
     printf("algo repl. type 'help' for commands, 'quit' to exit.\n");
-
     for (;;) {
         printf("> ");
         fflush(stdout);
         if (fgets(line, sizeof line, stdin) == NULL) break;
-
-        size_t len = strlen(line);
-        while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
-            line[--len] = '\0';
-        }
-
-        char tok[64];
-        char* rest = NULL;
-        char* p = line;
-        if (!next_token(&p, tok, sizeof tok, &rest)) continue;
-
-        if (strcmp(tok, "quit") == 0 || strcmp(tok, "exit") == 0) {
-            break;
-        } else if (strcmp(tok, "help") == 0) {
-            cmd_help();
-        } else if (strcmp(tok, "tree") == 0) {
-            cmd_tree();
-        } else if (strcmp(tok, "list") == 0) {
-            cmd_list();
-        } else if (strcmp(tok, "hash") == 0) {
-            int cap = 16;
-            if (*rest != '\0' && !parse_whole_int(rest, &cap)) {
-                printf("error: bad capacity\n");
-                continue;
-            }
-            cmd_hash(cap);
-        } else if (strcmp(tok, "insert") == 0) {
-            int k;
-            if (!parse_whole_int(rest, &k)) { printf("error: insert needs an integer\n"); continue; }
-            cmd_insert(k);
-        } else if (strcmp(tok, "find") == 0) {
-            int k;
-            if (!parse_whole_int(rest, &k)) { printf("error: find needs an integer\n"); continue; }
-            cmd_find(k);
-        } else if (strcmp(tok, "remove") == 0) {
-            int k;
-            if (!parse_whole_int(rest, &k)) { printf("error: remove needs an integer\n"); continue; }
-            cmd_remove(k);
-        } else if (strcmp(tok, "push_back") == 0) {
-            int k;
-            if (!parse_whole_int(rest, &k)) { printf("error: push_back needs an integer\n"); continue; }
-            cmd_push_back(k);
-        } else if (strcmp(tok, "push_front") == 0) {
-            int k;
-            if (!parse_whole_int(rest, &k)) { printf("error: push_front needs an integer\n"); continue; }
-            cmd_push_front(k);
-        } else if (strcmp(tok, "print") == 0) {
-            cmd_print();
-        } else if (strcmp(tok, "draw") == 0 ||
-                   strcmp(tok, "schema") == 0 ||
-                   strcmp(tok, "ascii") == 0) {
-            cmd_draw();
-        } else if (strcmp(tok, "size") == 0) {
-            cmd_size();
-        } else if (strcmp(tok, "height") == 0) {
-            cmd_height();
-        } else if (strcmp(tok, "validate") == 0) {
-            cmd_validate();
-        } else if (strcmp(tok, "min") == 0) {
-            cmd_min();
-        } else if (strcmp(tok, "max") == 0) {
-            cmd_max();
-        } else if (strcmp(tok, "balance") == 0) {
-            cmd_balance();
-        } else if (strcmp(tok, "reverse") == 0) {
-            cmd_reverse();
-        } else if (strcmp(tok, "sort") == 0) {
-            cmd_sort();
-        } else if (strcmp(tok, "stats") == 0) {
-            cmd_stats();
-        } else if (strcmp(tok, "save") == 0) {
-        } else if (strcmp(tok, "save") == 0) {
-            if (*rest == '\0') { printf("error: save needs a file path\n"); continue; }
-            save_current(rest);
-        } else if (strcmp(tok, "load") == 0) {
-            if (*rest == '\0') { printf("error: load needs a file path\n"); continue; }
-            load_from(rest);
-        } else if (strcmp(tok, "free") == 0) {
-            cmd_free();
-        } else {
-            printf("error: unknown command '%s' (try 'help')\n", tok);
-        }
+        int r = execute_line(line);
+        if (r == 2) break;
     }
-
     teardown();
     printf("bye\n");
     return 0;
