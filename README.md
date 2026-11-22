@@ -3,42 +3,56 @@
 A small algorithm library. One file per structure.
 No frameworks, no dependencies, 80s C-flavoured C++.
 
-**Status:** experiment. Not a product. Private repo:
+**Status:** v1.0 - experiment, not a product. Private repo:
 https://github.com/AlbertFisher666/algo
 
 ## Requirements
 
 - g++ with C++17
 - `make`
+- `bash` (for golden tests)
 
 ## Build
 
     make test
 
-Expected output ends with:
+Runs unit tests and golden REPL tests. Expected output ends with:
 
-    all tests passed
+    all unit tests passed
+    all golden tests passed
+
+To run only the REPL golden tests:
+
+    make test-repl
+
+To build the REPL:
+
+    make repl
 
 ## Layout
 
-    include/algo/tree.hpp   BST -  contract
-    include/algo/list.hpp   DLL -  contract
-    include/algo/hash.hpp   hash -  contract
-    include/algo/tree_algo.hpp   BST algorithms -  contract
-    include/algo/list_algo.hpp   DLL algorithms -  contract
-    include/algo/hash_algo.hpp   hash introspection -  contract 
-    src/tree.cpp            BST -  implementation
-    src/list.cpp            DLL -  implementation
-    src/hash.cpp            hash -  implementation
-    src/tree_algo.cpp       BST algorithms -  implementation
-    src/list_algo.cpp       DLL algorithms -  implementation
-    src/hash_algo.cpp       hash introspection -  implementation 
-    src/repl.cpp            interactive REPL -  implementation
-    tests/tree_test.cpp     BST -  tests
-    tests/list_test.cpp     DLL -  tests
-    tests/hash_test.cpp     hash -  tests
-    tests/tree_algo_test.cpp   BST algorithms -  tests
-    Makefile                build rules
+    include/algo/tree.hpp        BST - contract
+    include/algo/list.hpp        DLL - contract
+    include/algo/hash.hpp        hash - contract
+    include/algo/tree_algo.hpp   BST algorithms - contract
+    include/algo/list_algo.hpp   DLL algorithms - contract
+    include/algo/hash_algo.hpp   hash introspection - contract
+    src/tree.cpp                 BST - implementation
+    src/list.cpp                 DLL - implementation
+    src/hash.cpp                 hash - implementation
+    src/tree_algo.cpp            BST algorithms - implementation
+    src/list_algo.cpp            DLL algorithms - implementation
+    src/hash_algo.cpp            hash introspection - implementation
+    src/repl.cpp                 interactive REPL + batch modes
+    tests/tree_test.cpp          BST - tests
+    tests/list_test.cpp          DLL - tests
+    tests/hash_test.cpp          hash - tests
+    tests/tree_algo_test.cpp     BST algorithms - tests
+    tests/list_algo_test.cpp     DLL algorithms - tests
+    tests/hash_algo_test.cpp     hash introspection - tests
+    tests/run_golden.sh          REPL golden tests - runner
+    tests/repl_golden/           REPL golden tests - 10 cases (.in/.out)
+    Makefile                     build rules
 
 ## Build the REPL
 
@@ -107,6 +121,12 @@ Or directly, without make:
     typedef void (*TreeVisitFn)(int key, void* user);
     int tree_bfs(const Tree* t, TreeVisitFn cb, void* user);
 
+### list_algo.hpp
+
+    int list_reverse(List* l);
+    ListNode* list_middle(List* l);
+    int list_sort(List* l);
+
 ### hash_algo.hpp
 
     struct HashStats {
@@ -127,7 +147,7 @@ Exactly one structure is live at a time; `teardown()` is the only
 place that destroys it. Same style: no iostream, no std::string,
 fixed buffers, `printf`.
 
-Commands:
+Interactive commands:
 
     tree                     create a BST
     list                     create a doubly linked list
@@ -141,22 +161,45 @@ Commands:
     draw | schema | ascii    ASCII diagram of current structure
     size                     current element count
     height                   tree height
+    validate                 tree: BST invariant check
+    min | max                tree: min / max key
+    balance                  tree: rebuild balanced
+    reverse                  list: reverse in place
+    sort                     list: stable merge sort
+    stats                    hash: chain statistics
     save <file.repl>         write current structure to a .repl file
     load <file.repl>         read a .repl file into a new structure
     free                     destroy current structure
     help                     this message
     quit | exit              leave
 
+### Batch modes
+
+    ./build/repl --exec "tree; insert 5; insert 3; draw"
+    ./build/repl --script tests/repl_golden/case01.in
+    ./build/repl --exec "tree; insert abc"      # rc=1
+    ./build/repl --help
+
+- `--exec "<commands>"` - split by `;`, execute each; stop on first error.
+- `--script <file>` - read file line by line, execute each; stop on first error.
+- `--keep-going` - do not stop on errors (both batch modes).
+- `--help` - short usage.
+- No arguments - interactive mode (prompt, greeting, `quit`/`exit`).
+
+Batch modes do not print `> ` or the greeting. Exit code: `0` on success,
+`1` on command error. `quit`/`exit` inside `--exec`/`--script` stops the
+batch and returns `0`.
+
 ### Diagrams
 
 `draw` prints the live structure as ASCII:
 
-- **tree** -  indented BST with `|--` / `` `-- `` branches, followed by
+- **tree** - indented BST with `|--` / `` `-- `` branches, followed by
   `size=` and `height=`.
-- **list** -  `head [k] <-> [k] <-> ... tail`, collapsed with
+- **list** - `head [k] <-> [k] <-> ... tail`, collapsed with
   `... (N more) ...` when larger than `LIST_DRAW_MAX` (10), followed
   by `size=`.
-- **hash** -  one line per bucket, `[ i] k -> k -> ...` or `(empty)`,
+- **hash** - one line per bucket, `[ i] k -> k -> ...` or `(empty)`,
   followed by `load factor: d.dd`.
 
 All draw routines take `const` pointers and never mutate.
@@ -202,11 +245,6 @@ extension only warns.
   in-order -> array -> `tree_free` -> `from_sorted_array`.
   `bfs` uses an array-backed queue `const TreeNode*[size]`,
   head/tail indices, no `std::queue`.
-- `repl`: single global structure, `Kind` tag, `teardown()` as the
-  one destruction point. Command dispatch is a flat `strcmp` chain
-  in `main`. Integer parsing is `strtol` with full-string and
-  range checks (`parse_whole_int`). Save writes in-order for the
-  tree, head-to-tail for the list, bucket order for the hash.
 - `list_algo`: `reverse` is in-place, swaps `prev`/`next` per node,
   then swaps `head`/`tail`. `middle` is two-pointer; for even size
   returns the lower middle (`fast = head->next`). `sort` is stable
@@ -214,10 +252,21 @@ extension only warns.
 - `hash_algo`: one pass over buckets. `min_chain` counts non-empty
   buckets only; for an empty table it is 0, same as `max_chain`.
   `load_factor = size / capacity` as `double`.
+- `repl`: single global structure, `Kind` tag, `teardown()` as the
+  one destruction point. Dispatch lives in `execute_line(line)`
+  (returns 0 OK, 1 error, 2 quit); interactive mode and batch modes
+  (`--exec`, `--script`) share the same dispatcher. Integer parsing
+  is `strtol` with full-string and range checks (`parse_whole_int`).
+  Save writes in-order for the tree, head-to-tail for the list,
+  bucket order for the hash.
 
 ## Tests
 
     make test
+
+Runs unit tests and golden REPL tests.
+
+Unit tests (assert-based, no framework):
 
 `tree_test.cpp` covers:
 
@@ -252,7 +301,7 @@ extension only warns.
 
 `list_algo_test.cpp` covers:
 
-- reverse: empty, one, even, odd -  checks head/tail/prev/next
+- reverse: empty, one, even, odd - checks head/tail/prev/next
 - middle: empty, one, odd, even (lower middle)
 - sort: empty, one, reverse input, sorted input, duplicates
 - prev-chain: `check_forward` walks head->tail and verifies
@@ -265,15 +314,24 @@ extension only warns.
 - spread: capacity 8, eight keys, fields consistent
 - bad args: `NULL` h / `NULL` out -> -1
 
-No framework. `assert` from `<assert.h>`.
+Golden REPL tests:
 
-The REPL is exercised manually; no automated tests yet.
+    make test-repl
+
+`tests/repl_golden/` has 10 cases (`case01.in` … `case10.in` with
+matching `.out`). Each `.in` is fed via `--script`, output is diffed
+against `.out`. `run_golden.sh` normalizes prompts (`^> `) and file
+paths (`<FILE>`); `LC_ALL=C` is set so `strerror` is stable.
+Cases: tree (insert/draw/validate/min/max/height/size), balance,
+list (push/reverse/sort), hash (stats/draw/remove), save/load
+tree/list/hash, errors, duplicates, free + recreate.
 
 ## CI
 
 `.github/workflows/ci.yml` runs `make` and `make test` on every push
-and pull request. Same skeleton as `cpvm-cpp`: checkout, compiler
-version, build, test.
+and pull request. `make test` includes unit tests and golden REPL
+tests. Same skeleton as `cpvm-cpp`: checkout, compiler version,
+build, test.
 
 ## License
 

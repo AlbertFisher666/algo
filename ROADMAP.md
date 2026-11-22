@@ -1,4 +1,4 @@
-# ROADMAP — algo v1.0
+# ROADMAP - algo v1.0
 
 Цель: превратить `algo` из набора трёх структур в **библиотеку структур + алгоритмов**
 с проверяемым REPL. Направление: **A (Algo Core) + C (REPL 2.0)**.
@@ -10,7 +10,7 @@
 `new/delete`, `NULL`, `printf`, `FILE*`, фиксированные буферы. Без STL,
 без исключений, без RAII.
 
-Git — вне scope этого документа (ведётся отдельно).
+Git - вне scope этого документа (ведётся отдельно).
 
 ---
 
@@ -20,54 +20,58 @@ Git — вне scope этого документа (ведётся отдель�
 2. Один этап = один логический слой. Не смешивать tree_algo и list_algo в одном коммите.
 3. Новый модуль = `<struct>_algo.{hpp,cpp}` + `<struct>_algo_test.cpp`.
 4. API-конвенции:
-   - мутирующие: `0` — OK, `-1` — ошибка;
-   - предикаты: `1` — да, `0` — нет;
+   - мутирующие: `0` - OK, `-1` - ошибка;
+   - предикаты: `1` - да, `0` - нет;
    - обходы с колбэком: возвращают число посещённых узлов;
    - `const*` там, где функция не мутирует.
-5. `-Wall -Wextra` — ноль предупреждений в новом коде.
+5. `-Wall -Wextra` - ноль предупреждений в новом коде.
 6. Старые API (`tree.h`, `list.h`, `hash.h`) **не меняются**. Только добавляются новые модули.
+7. LICENSE - MIT, как у `cpvm-cpp` и `topbyfisher`. CI -
+   `.github/workflows/ci.yml`, `make` + `make test` на push/PR.
 
 ---
 
 ## 1. Карта этапов
 
-| # | Этап | Выход | Оценка |
-|---|------|-------|--------|
-| 0 | Baseline | тег/точка отката | 0.5д |
-| 1 | Каркас сборки | Makefile + конвенции + пустой модуль | 0.5–1д |
-| 2 | Tree Algo | `tree_algo` + тесты | 1–2д |
-| 3 | List Algo | `list_algo` + тесты | 1–2д |
-| 4 | Hash Algo | `hash_algo` + тесты | 0.5–1д |
-| 5 | REPL: команды | новые команды в REPL | 1–2д |
-| 6 | REPL: batch | `--exec` / `--script` | 1–2д |
-| 7 | Golden-тесты | `tests/repl_golden/` + `run_golden.sh` | 1д |
-| 8 | Docs + v1.0 | README, EXPLAINED, тег | 1д |
+| # | Этап | Выход | Оценка | Статус |
+|---|------|-------|--------|--------|
+| 0 | Baseline | тег/точка отката | 0.5д | done |
+| 1 | Каркас сборки | Makefile + конвенции + пустой модуль | 0.5–1д | done |
+| 2 | Tree Algo | `tree_algo` + тесты | 1–2д | done (`stage2-tree-algo`) |
+| 3 | List Algo | `list_algo` + тесты | 1–2д | done (`stage3-list-algo`) |
+| 4 | Hash Algo | `hash_algo` + тесты | 0.5–1д | done (`stage4-hash-algo`) |
+| 5 | REPL: команды | новые команды в REPL | 1–2д | done (`stage5-repl-commands`) |
+| 6 | REPL: batch | `--exec` / `--script` | 1–2д | done (`stage6-batch`) |
+| 7 | Golden-тесты | `tests/repl_golden/` + `run_golden.sh` | 1д | done (`stage7-golden`, `stage7.1`) |
+| 8 | Docs + v1.0 | README, EXPLAINED, тег | 1д | done (`v1.0`) |
 
-Итого: ~7–11 дней спокойного темпа. Каждый этап — отдельная точка остановки.
+Итого: ~7–11 дней спокойного темпа. Каждый этап - отдельная точка остановки.
 
 ---
 
-## 2. Этап 0 — Baseline
+## 2. Этап 0 - Baseline
 
-**Цель:** зафиксировать «v0.1 — done», чтобы было куда откатиться.
+**Цель:** зафиксировать «v0.1 - done», чтобы было куда откатиться.
 
 Шаги:
 1. Убедиться, что `make test` заканчивается `all tests passed`.
 2. Собрать REPL по README вручную, прогнать сценарий:
    `tree` → `insert 5` → `insert 3` → `draw` → `save demo.repl` → `free` → `load demo.repl` → `draw` → `quit`.
 3. Положить этот `ROADMAP.md` в корень.
-4. В README в статусе добавить строку `v0.1 — baseline`.
+4. В README в статусе добавить строку `v0.1 - baseline`.
 
 **DoD:** проект собирается, тесты зелёные, ROADMAP на месте.
 
+**Статус: done.**
+
 ---
 
-## 3. Этап 1 — Каркас сборки и конвенции
+## 3. Этап 1 - Каркас сборки и конвенции
 
 **Цель:** новые модули добавляются автоматически, без ручного `g++`.
 
 Шаги:
-1. Заменить/дополнить Makefile (готовый — в приложении A).
+1. Заменить/дополнить Makefile (готовый - в приложении A).
    Ключевое: `TEST_SRCS := $(wildcard tests/*_test.cpp)`,
    `TEST_BINS := $(patsubst tests/%.cpp,build/%,$(TEST_SRCS))`.
 2. Добавить цели: `all`, `test`, `repl`, `test-repl` (заглушка до этапа 7), `clean`.
@@ -77,33 +81,35 @@ Git — вне scope этого документа (ведётся отдель�
 
 **DoD:** `make clean && make && make test` зелёный; пустой `tree_algo` компилируется и линкуется.
 
+**Статус: done.** Makefile исправлен по ходу (`patsubst`, `-c $<`, `%_test`, `bash` для golden). `list_algo`/`hash_algo` - заглушки на месте, `LIB_SRCS` цел.
+
 ---
 
-## 4. Этап 2 — Tree Algo
+## 4. Этап 2 - Tree Algo
 
 **Цель:** алгоритмический слой над BST.
 
-### 4.1 API (`include/algo/tree_algo.hpp`)
+### 4.1. API (`include/algo/tree_algo.hpp`)
 
-- `int tree_validate(const Tree* t)` — проверка BST-инварианта с границами `long long`.
-- `int tree_min(const Tree* t, int* out)` / `int tree_max(...)` — `1` при успехе, `0` если пусто.
-- `int tree_to_array_inorder(const Tree* t, int* buf, int cap)` — заполняет буфер, возвращает `t->size`.
-- `int tree_from_sorted_array(Tree* t, const int* keys, int n)` — строит идеально сбалансированное дерево напрямую через `new TreeNode` (не через `tree_insert`).
-- `int tree_balance(Tree* t)` — in-order → массив → `tree_free` → `from_sorted_array`.
+- `int tree_validate(const Tree* t)` - проверка BST-инварианта с границами `long long`.
+- `int tree_min(const Tree* t, int* out)` / `int tree_max(...)` - `1` при успехе, `0` если пусто.
+- `int tree_to_array_inorder(const Tree* t, int* buf, int cap)` - заполняет буфер, возвращает `t->size`.
+- `int tree_from_sorted_array(Tree* t, const int* keys, int n)` - строит идеально сбалансированное дерево напрямую через `new TreeNode` (не через `tree_insert`).
+- `int tree_balance(Tree* t)` - in-order → массив → `tree_free` → `from_sorted_array`.
 - `typedef void (*TreeVisitFn)(int key, void* user);`
-  `int tree_bfs(const Tree* t, TreeVisitFn cb, void* user)` — очередь на массиве `TreeNode*[t->size]`, уровень-порядок.
+  `int tree_bfs(const Tree* t, TreeVisitFn cb, void* user)` - очередь на массиве `TreeNode*[t->size]`, уровень-порядок.
 
-### 4.2 Реализация (`src/tree_algo.cpp`)
+### 4.2. Реализация (`src/tree_algo.cpp`)
 
 Порядок: `validate` → `min/max` → `to_array_inorder` → `from_sorted_array` → `balance` → `bfs`.
-Внутренние хелперы — `static`. Никакого `std::`.
+Внутренние хелперы - `static`. Никакого `std::`.
 
 Ключевые приёмы:
-- `validate_node` принимает `long long lo, hi`; при спуске влево `hi = n->key - 1`, вправо `lo = n->key + 1` (или просто строгие `<`/`>` — тогда `lo = n->key`, `hi = n->key` и проверка `n->key > lo && n->key < hi`; выбрать один вариант и задокументировать).
-- `build_balanced(a, lo, hi)` — рекурсивный, `mid = lo + (hi - lo) / 2`.
-- `bfs` — массив-очередь, `head/tail` индексы, без `std::queue`.
+- `validate_node` принимает `long long lo, hi`; при спуске влево `hi = n->key - 1`, вправо `lo = n->key + 1` (или просто строгие `<`/`>` - тогда `lo = n->key`, `hi = n->key` и проверка `n->key > lo && n->key < hi`; выбрать один вариант и задокументировать).
+- `build_balanced(a, lo, hi)` - рекурсивный, `mid = lo + (hi - lo) / 2`.
+- `bfs` - массив-очередь, `head/tail` индексы, без `std::queue`.
 
-### 4.3 Тесты (`tests/tree_algo_test.cpp`)
+### 4.3. Тесты (`tests/tree_algo_test.cpp`)
 
 | Тест | Ожидание |
 |---|---|
@@ -119,57 +125,66 @@ Git — вне scope этого документа (ведётся отдель�
 
 **DoD:** `make test` включает `tree_algo_test`, зелёный, `-Wall -Wextra` чистый.
 
+**Статус: done.** Тег `stage2-tree-algo` на `a9281d6`. 9 тестов, `make test` зелёный, `-Wall -Wextra` чистый. `tree_algo.cpp` использует `const TreeNode**` в BFS-очереди (строже, чем в этом документе). В тесте `test_to_array_inorder` ожидание - `{1,3,4,5,7,8,9}` (in-order от `{5,3,8,1,4,7,9}`), а не `i+1` (первая версия теста падала на этом - исправлено).
+
 ---
 
-## 5. Этап 3 — List Algo
+## 5. Этап 3 - List Algo
 
-### 5.1 API (`include/algo/list_algo.hpp`)
+### 5.1. API (`include/algo/list_algo.hpp`)
 
-- `int list_reverse(List* l)` — in place, swap(prev,next) по узлам, swap(head,tail).
-- `ListNode* list_middle(List* l)` — two-pointer, для чётного возвращает нижнюю середину.
-- `int list_sort(List* l)` — stable merge sort; merge на `next`, потом один проход восстанавливает `prev`, `head`, `tail`.
+- `int list_reverse(List* l)` - in place, swap(prev,next) по узлам, swap(head,tail).
+- `ListNode* list_middle(List* l)` - two-pointer, для чётного возвращает нижнюю середину.
+- `int list_sort(List* l)` - stable merge sort; merge на `next`, потом один проход восстанавливает `prev`, `head`, `tail`.
 
-### 5.2 Реализация (`src/list_algo.cpp`)
+### 5.2. Реализация (`src/list_algo.cpp`)
 
-- `list_reverse` — итеративно.
-- `list_middle` — `slow=head`, `fast=head`; `while (fast && fast->next) { slow=slow->next; fast=fast->next->next; }`.
+- `list_reverse` - итеративно.
+- `list_middle` - `slow=head`, `fast=head`; `while (fast && fast->next) { slow=slow->next; fast=fast->next->next; }`.
 - `list_sort`:
-  - `static ListNode* merge(ListNode* a, ListNode* b)` — стабильное (`<=`), работает по `next`.
-  - `static ListNode* split_half(ListNode* head)` — отрезает первую половину, возвращает вторую.
-  - `static ListNode* sort_rec(ListNode* head)` — рекурсия `O(log n)` по глубине.
-  - после merge — `fix_links`: пройти, выставить `prev`, найти `tail`, выставить `size`.
+  - `static ListNode* merge(ListNode* a, ListNode* b)` - стабильное (`<=`), работает по `next`.
+  - `static ListNode* split_half(ListNode* head)` - отрезает первую половину, возвращает вторую.
+  - `static ListNode* sort_rec(ListNode* head)` - рекурсия `O(log n)` по глубине.
+  - после merge - `fix_links`: пройти, выставить `prev`, найти `tail`, выставить `size`.
 
-### 5.3 Тесты (`tests/list_algo_test.cpp`)
+### 5.3. Тесты (`tests/list_algo_test.cpp`)
 
-- `reverse`: пусто, один, чётное, нечётное — проверить head/tail/prev/next.
+- `reverse`: пусто, один, чётное, нечётное - проверить head/tail/prev/next.
 - `middle`: пусто → `NULL`, один, чётное (нижняя), нечётное.
 - `sort`: пусто, один, случайные 20, уже отсортированные, обратно отсортированные, дубликаты.
-- `prev`-цепочка после sort — отдельный тест: пройти tail→head и сверить с head→tail.
+- `prev`-цепочка после sort - отдельный тест: пройти tail→head и сверить с head→tail.
 
 **DoD:** аналогично этапу 2.
 
+**Статус: done.** Тег `stage3-list-algo` на `e5e3c84` (после README-фикса). 13 тестов, `make test` зелёный. Фактическая реализация отличается от плана:
+- `list_middle` для чётного размера возвращает **нижнюю** середину (`slow = head`, `fast = head->next` в старте), а не `fast = head` - иначе для `1..4` получалось `3`, а не `2`.
+- `list_sort` - `list_sort_chain(head, tail)` + `list_merge_sorted(left, right, tail)`, stable (`<=`). `fix_links` не отдельная функция: `prev` и `tail` восстанавливаются в `list_merge_sorted` и `list_sort_chain`.
+- `hash_algo.cpp` на этом этапе был перепутан с заголовком (содержимое `hash_algo.hpp` лежало в `src/hash_algo.cpp`) - исправлено, `src/hash_algo.cpp` теперь stub .cpp.
+
 ---
 
-## 6. Этап 4 — Hash Algo
+## 6. Этап 4 - Hash Algo
 
-### 6.1 API (`include/algo/hash_algo.hpp`)
+### 6.1. API (`include/algo/hash_algo.hpp`)
 
 - `struct HashStats { int capacity; int size; int min_chain; int max_chain; int empty_buckets; double load_factor; };`
-- `int hash_stats(const Hash* h, HashStats* out)` — `0`/`-1`.
+- `int hash_stats(const Hash* h, HashStats* out)` - `0`/`-1`.
 
-### 6.2 Реализация
-Один проход по бакетам; `min_chain` считается только по непустым (или `0` для пустой таблицы — зафиксировать в комментарии).
+### 6.2. Реализация
+Один проход по бакетам; `min_chain` считается только по непустым (или `0` для пустой таблицы - зафиксировать в комментарии).
 
-### 6.3 Тесты
+### 6.3. Тесты
 Пустая (capacity=8), capacity=1 с тремя ключами (`max_chain==3`, `empty_buckets==0`), равномерная.
 
 **DoD:** аналогично.
 
+**Статус: done.** Тег `stage4-hash-algo` на `6f39f2a`. 4 теста: empty, all-in-one-bucket, spread, bad_args. `min_chain` - только по непустым бакетам, `0` для пустой таблицы (зафиксировано в комментарии в `hash_algo.hpp` и в тесте `test_empty`). `test_bad_args` - добавлен сверх плана (проверяет `NULL` h / `NULL` out → `-1`). `load_factor` в `stats` - `double` (`3/8 → 0.38`), в `draw` - целочисленно (`3/8 → 0.37`), это разные формулы, зафиксировано в ALGO_EXPLAINED §12 п.19.
+
 ---
 
-## 7. Этап 5 — REPL: новые команды
+## 7. Этап 5 - REPL: новые команды
 
-Новые команды (диспетчер в `main` — плоская `strcmp`-цепочка, как сейчас):
+Новые команды (диспетчер в `main` - плоская `strcmp`-цепочка, как сейчас):
 
 | Команда | Структура | Вывод |
 |---|---|---|
@@ -180,34 +195,36 @@ Git — вне scope этого документа (ведётся отдель�
 | `sort` | list | `ok` |
 | `stats` | hash | многострочно: capacity/size/min_chain/max_chain/empty/load |
 
-Реализация — `static void cmd_*` в стиле существующих, с `need(...)`.
+Реализация - `static void cmd_*` в стиле существующих, с `need(...)`.
 Обновить `cmd_help`. Ручной прогон всех новых + старых команд.
 
 **DoD:** старые команды не сломаны, новые работают, `make test` зелёный (REPL не в unit-тестах, но собирается).
 
+**Статус: done.** Тег `stage5-repl-commands` на `61a120b`. Семь `cmd_*` + `cmd_help` + семь веток в диспетчере `main`. Ручной прогон: `validate` → `valid`, `min` → `3`, `max` → `8`, `balance` → `ok`, `reverse`/`sort` → `ok`, `stats` → три строки. `need(...)` на неправильной структуре - корректные ошибки.
+
 ---
 
-## 8. Этап 6 — REPL: `--exec` и `--script`
+## 8. Этап 6 - REPL: `--exec` и `--script`
 
-### 8.1 Рефакторинг
+### 8.1. Рефакторинг
 Вынести диспетчеризацию из `main` в:
 ```cpp
 static int execute_line(char* line);  /* 0 ok, 1 err, 2 quit */
 ```
 Интерактивный `main` использует её в цикле.
 
-### 8.2 Режимы (`int main(int argc, char** argv)`)
+### 8.2. Режимы (`int main(int argc, char** argv)`)
 
-- без аргументов — интерактив (как сейчас);
-- `--exec "<commands>"` — разбить по `;` (свой цикл, не `strtok`, т.к. он мутирует строку — а нам ок, но лучше явно), `execute_line` каждую; стоп на первой ошибке (или `--keep-going`);
-- `--script <file>` — читать файл построчно через `fgets`, `execute_line`; стоп на ошибке (или `--keep-going`);
-- `--keep-going` — флаг, не останавливаться на ошибках;
-- `--help` — краткая справка.
+- без аргументов - интерактив (как сейчас);
+- `--exec "<commands>"` - разбить по `;` (свой цикл, не `strtok`, т.к. он мутирует строку - а нам ок, но лучше явно), `execute_line` каждую; стоп на первой ошибке (или `--keep-going`);
+- `--script <file>` - читать файл построчно через `fgets`, `execute_line`; стоп на ошибке (или `--keep-going`);
+- `--keep-going` - флаг, не останавливаться на ошибках;
+- `--help` - краткая справка.
 
 В batch-режимах **не печатать** `> ` и приветствие `algo repl. type 'help'...`.
 Код возврата: `0` при успехе, `1` при ошибке команды.
 
-### 8.3 DoD
+### 8.3. DoD
 ```sh
 ./build/repl --exec "tree; insert 5; insert 3; draw"
 ./build/repl --script tests/repl_golden/case01.in
@@ -215,11 +232,19 @@ static int execute_line(char* line);  /* 0 ok, 1 err, 2 quit */
 ```
 Интерактив не изменился.
 
+**Статус: done.** Тег `stage6-batch` на `0d9dd19`. `execute_line(line) -> 0/1/2`, `run_exec_string` (свой цикл по `strchr(start, ';')`, не `strtok`), `run_script` (`fgets` построчно), `usage`, `main(argc, argv)` с разбором флагов. Проверено:
+- `--exec "tree; insert 5; insert 3; insert 8; draw; min; max; balance"` → дерево, `3`, `8`, `ok`;
+- `--exec "tree; insert abc"` → `error: insert needs an integer`, `rc=1`;
+- `--keep-going` → ошибка на `abc`, но `insert 8` выполняется;
+- `--exec "tree; quit"` → `rc=0`;
+- `--help` → usage, `rc=0`;
+- интерактив не изменился.
+
 ---
 
-## 9. Этап 7 — Golden-тесты REPL
+## 9. Этап 7 - Golden-тесты REPL
 
-### 9.1 Структура
+### 9.1. Структура
 ```
 tests/repl_golden/
     case01.in   case01.out
@@ -227,13 +252,13 @@ tests/repl_golden/
 tests/run_golden.sh
 ```
 
-### 9.2 Нормализация (`run_golden.sh`)
+### 9.2. Нормализация (`run_golden.sh`)
 - убрать `> ` (на случай, если попадёт);
-- убрать приветствие (в batch его нет — проверить);
+- убрать приветствие (в batch его нет - проверить);
 - пути файлов → `<FILE>` (для save/load кейсов);
-- ASCII-диаграммы **не** нормализовать — они контракт.
+- ASCII-диаграммы **не** нормализовать - они контракт.
 
-### 9.3 Кейсы (10)
+### 9.3. Кейсы (10)
 1. tree: insert/draw/validate/min/max/height/size
 2. tree: balance на вырожденном (1..7 → draw)
 3. list: push_back/push_front/draw/reverse/draw/sort/draw
@@ -245,23 +270,30 @@ tests/run_golden.sh
 9. дубликаты: tree/hash → warning, list → ok
 10. `free` + повторное создание
 
-### 9.4 Makefile
+### 9.4. Makefile
 `test-repl` зависит от `repl`, запускает `run_golden.sh`.
 `make test` = unit + golden.
 
 **DoD:** `make test` зелёный, включая golden.
 
+**Статус: done.** Тег `stage7-golden` на `b8f9082`, `stage7.1` на `481b986`. 10 кейсов, `run_golden.sh` (bash, `<( )`, `normalize`, `LC_ALL=C`), `make test-repl`. `make test` теперь зависит от `test-repl` (`all unit tests passed` + `all golden tests passed`). `.repl`-файлы от case05–07 в `.gitignore` (не в git). Фактические отличия от плана:
+- `run_golden.sh` - `#!/usr/bin/env bash` (нужен `<( )`), `export LC_ALL=C` (стабильный `strerror`).
+- `make test` включает golden (не только `make test-repl`).
+- Тег `stage7.1` - отдельный коммит `tests: make test includes golden; LC_ALL=C in run_golden.sh` поверх `stage7-golden`.
+
 ---
 
-## 10. Этап 8 — Документация и v1.0
+## 10. Этап 8 - Документация и v1.0
 
 1. README: разделы API (tree_algo/list_algo/hash_algo), REPL (новые команды, batch-режимы), Tests (`make test-repl`), статус `v1.0`.
 2. `ALGO_EXPLAINED.md`: раздел «Algo layer» (validate/balance/merge sort/BFS) и «Batch mode» (`execute_line`, `--exec`, `--script`).
-3. `ROADMAP.md`: v1.0 done, generic layer (void\*+компаратор) — в «next».
+3. `ROADMAP.md`: v1.0 done, generic layer (void\*+компаратор) - в «next».
 4. `make clean && make && make test` с нуля, `-Wall -Wextra` чисто.
 5. Тег `v1.0`.
 
 **DoD:** всё собирается с нуля, тесты зелёные, документация соответствует коду.
+
+**Статус: done.** README - `v1.0`, batch-режимы, `make test-repl`, `run_golden.sh` в Layout, `list_algo`/`hash_algo` API. `ALGO_EXPLAINED.md` - разделы 8 (слой алгоритмов), 9.7 (batch mode), 10.2 (golden), 12 (подводные камни 15–20), 13 (схема с `run_golden.sh`). `make clean && make && make test` - unit + golden, `-Wall -Wextra` чисто. Тег `v1.0`.
 
 ---
 
@@ -270,15 +302,18 @@ tests/run_golden.sh
 - Generic layer: `void*` ключи + компаратор, `_g`-версии API, int-обёртки поверх.
 - `hash_resize` (динамическая capacity).
 - Визуализация в DOT/SVG.
-- Автотесты на `list_sort` стабильность (нужны ключи с метками — потребует generic layer).
+- Автотесты на `list_sort` стабильность (нужны ключи с метками - потребует generic layer).
+- `CONTRIBUTING.md` - адаптация PROTOCOL §6/§11 к модульной библиотеке (текст готов, не закоммичен).
+- `audit-system.sh` §4 - добавить `algo` в список git-репозиториев (сейчас 4: archive, web, cpvm-cpp, topbyfisher; `algo` - пятый).
+- `PROTOCOL.md` §4.6 - «Четыре git-репозитория» → «Пять», перечислить `algo`.
 
 ---
 
-# Приложение A — Makefile
+# Приложение A - Makefile
 
 ```make
 # Makefile for algo v1.0
-# 80s C-flavoured C++ — build rules.
+# 80s C-flavoured C++ - build rules.
 
 CXX      := g++
 CXXFLAGS := -std=c++17 -O2 -Wall -Wextra -I include
@@ -312,12 +347,12 @@ $(BUILD)/%_test: tests/%_test.cpp $(LIB_OBJS) | $(BUILD)
 
 repl: $(REPL_BIN)
 
-test: $(TEST_BINS)
+test: $(TEST_BINS) test-repl
 	@for t in $(TEST_BINS); do echo "=== $$t ==="; ./$$t || exit 1; done
-	@echo "all tests passed"
+	@echo "all unit tests passed"
 
 test-repl: $(REPL_BIN)
-	@sh tests/run_golden.sh
+	@bash tests/run_golden.sh
 
 clean:
 	rm -rf $(BUILD)
@@ -326,11 +361,12 @@ clean:
 Замечания:
 - `-I include` уже учтён.
 - `test` автоматически подхватывает новые `tests/*_test.cpp`.
-- `test-repl` — отдельная цель, но её можно добавить в `test` после этапа 7 (см. ниже).
+- `test` зависит от `test-repl`, поэтому `make test` = unit + golden.
+- `all unit tests passed` (не `all tests passed`), потому что golden печатает свой `all golden tests passed`.
 
 ---
 
-# Приложение B — `include/algo/tree_algo.hpp`
+# Приложение B - `include/algo/tree_algo.hpp`
 
 ```cpp
 #ifndef ALGO_TREE_ALGO_HPP
@@ -370,7 +406,7 @@ int tree_bfs(const Tree* t, TreeVisitFn cb, void* user);
 
 ---
 
-# Приложение C — `src/tree_algo.cpp`
+# Приложение C - `src/tree_algo.cpp`
 
 ```cpp
 /* ============================================================
@@ -381,6 +417,7 @@ int tree_bfs(const Tree* t, TreeVisitFn cb, void* user);
 #include "algo/tree_algo.hpp"
 
 #include <stdio.h>
+#include <stddef.h>
 
 /* ---------- validate ---------- */
 
@@ -394,7 +431,6 @@ static int validate_node(const TreeNode* n, long long lo, long long hi) {
 
 int tree_validate(const Tree* t) {
     if (t == NULL) return 0;
-    /* Use values just outside int range as open bounds. */
     long long lo = -2147483648LL - 1;
     long long hi =  2147483647LL + 1;
     return validate_node(t->root, lo, hi);
@@ -451,7 +487,7 @@ int tree_from_sorted_array(Tree* t, const int* keys, int n) {
     if (t == NULL) return -1;
     if (n < 0) return -1;
     if (n > 0 && keys == NULL) return -1;
-    if (t->root != NULL || t->size != 0) return -1;  /* must be empty */
+    if (t->root != NULL || t->size != 0) return -1;
     t->root = build_balanced(keys, 0, n - 1);
     t->size = n;
     return 0;
@@ -462,11 +498,9 @@ int tree_from_sorted_array(Tree* t, const int* keys, int n) {
 int tree_balance(Tree* t) {
     if (t == NULL) return -1;
     if (t->size == 0) return 0;
-
     int* buf = new int[t->size];
     int n = tree_to_array_inorder(t, buf, t->size);
     if (n != t->size) { delete[] buf; return -1; }
-
     tree_free(t);
     int rc = tree_from_sorted_array(t, buf, n);
     delete[] buf;
@@ -477,20 +511,17 @@ int tree_balance(Tree* t) {
 
 int tree_bfs(const Tree* t, TreeVisitFn cb, void* user) {
     if (t == NULL || cb == NULL || t->root == NULL) return 0;
-
-    TreeNode** q = new TreeNode*[t->size];
+    const TreeNode** q = new const TreeNode*[t->size];
     int head = 0, tail = 0;
     q[tail++] = t->root;
     int visited = 0;
-
     while (head < tail) {
-        TreeNode* n = q[head++];
+        const TreeNode* n = q[head++];
         cb(n->key, user);
         visited++;
         if (n->left  != NULL) q[tail++] = n->left;
         if (n->right != NULL) q[tail++] = n->right;
     }
-
     delete[] q;
     return visited;
 }
@@ -498,7 +529,7 @@ int tree_bfs(const Tree* t, TreeVisitFn cb, void* user) {
 
 ---
 
-# Приложение D — `tests/tree_algo_test.cpp`
+# Приложение D - `tests/tree_algo_test.cpp`
 
 ```cpp
 /* ============================================================
@@ -510,8 +541,6 @@ int tree_bfs(const Tree* t, TreeVisitFn cb, void* user) {
 
 #include <assert.h>
 #include <stdio.h>
-
-/* ---------- validate ---------- */
 
 static void test_validate_empty(void) {
     Tree t; tree_init(&t);
@@ -538,8 +567,6 @@ static void test_validate_broken(void) {
     tree_free(&t);
 }
 
-/* ---------- min / max ---------- */
-
 static void test_min_max_empty(void) {
     Tree t; tree_init(&t);
     int v = 0;
@@ -558,8 +585,6 @@ static void test_min_max(void) {
     tree_free(&t);
 }
 
-/* ---------- to_array_inorder ---------- */
-
 static void test_to_array_inorder(void) {
     Tree t; tree_init(&t);
     int ks[] = {5,3,8,1,4,7,9};
@@ -567,11 +592,10 @@ static void test_to_array_inorder(void) {
     int buf[7];
     int n = tree_to_array_inorder(&t, buf, 7);
     assert(n == 7);
-    for (int i = 0; i < 7; i++) assert(buf[i] == i + 1);
+    int expect[] = {1,3,4,5,7,8,9};
+    for (int i = 0; i < 7; i++) assert(buf[i] == expect[i]);
     tree_free(&t);
 }
-
-/* ---------- from_sorted_array ---------- */
 
 static void test_from_sorted_array(void) {
     int ks[] = {1,2,3,4,5,6,7};
@@ -579,16 +603,13 @@ static void test_from_sorted_array(void) {
     assert(tree_from_sorted_array(&t, ks, 7) == 0);
     assert(t.size == 7);
     assert(tree_validate(&t) == 1);
-    /* perfect balance for 7 nodes: height 3 */
     assert(tree_height(&t) == 3);
     tree_free(&t);
 }
 
-/* ---------- balance ---------- */
-
 static void test_balance(void) {
     Tree t; tree_init(&t);
-    for (int i = 1; i <= 7; i++) tree_insert(&t, i);  /* degenerate */
+    for (int i = 1; i <= 7; i++) tree_insert(&t, i);
     assert(tree_height(&t) == 7);
     assert(tree_balance(&t) == 0);
     assert(tree_validate(&t) == 1);
@@ -596,8 +617,6 @@ static void test_balance(void) {
     assert(t.size == 7);
     tree_free(&t);
 }
-
-/* ---------- bfs ---------- */
 
 typedef struct { int keys[16]; int n; } Acc;
 
@@ -635,7 +654,7 @@ int main(void) {
 
 ---
 
-# Приложение E — `include/algo/list_algo.hpp`
+# Приложение E - `include/algo/list_algo.hpp`
 
 ```cpp
 #ifndef ALGO_LIST_ALGO_HPP
@@ -660,7 +679,7 @@ int list_sort(List* l);
 
 ---
 
-# Приложение F — `src/list_algo.cpp`
+# Приложение F - `src/list_algo.cpp`
 
 ```cpp
 /* ============================================================
@@ -671,26 +690,116 @@ int list_sort(List* l);
 #include "algo/list_algo.hpp"
 
 #include <stdio.h>
+#include <stddef.h>
 
-int list_reverse(List* l) {
-    if (l == NULL) return -1;
-    ListNode* cur = l->head;
-    while (cur != NULL) {
-        ListNode* nxt = cur->next;
-        cur->next = cur->prev;
-        cur->prev = nxt;
-        cur = nxt;
+/* Merge two sorted chains by next. Stable: <= keeps left
+ * before right on equal keys. Rebuilds prev, writes last
+ * node to *tail. */
+static ListNode* list_merge_sorted(ListNode* left,
+                                   ListNode* right,
+                                   ListNode** tail)
+{
+    ListNode* head;
+    ListNode* last;
+
+    head = NULL;
+    last = NULL;
+
+    while (left != NULL && right != NULL) {
+        ListNode* node;
+        if (left->key <= right->key) {
+            node = left;
+            left = left->next;
+        } else {
+            node = right;
+            right = right->next;
+        }
+        node->prev = last;
+        if (last != NULL) last->next = node;
+        else              head = node;
+        last = node;
     }
-    ListNode* tmp = l->head;
+
+    while (left != NULL) {
+        ListNode* node = left;
+        left = left->next;
+        node->prev = last;
+        if (last != NULL) last->next = node;
+        else              head = node;
+        last = node;
+    }
+
+    while (right != NULL) {
+        ListNode* node = right;
+        right = right->next;
+        node->prev = last;
+        if (last != NULL) last->next = node;
+        else              head = node;
+        last = node;
+    }
+
+    if (last != NULL) last->next = NULL;
+    *tail = last;
+    return head;
+}
+
+static ListNode* list_sort_chain(ListNode* head, ListNode** tail)
+{
+    ListNode* slow;
+    ListNode* fast;
+    ListNode* right;
+    ListNode* left_tail;
+    ListNode* right_tail;
+
+    if (head == NULL) { *tail = NULL; return NULL; }
+    if (head->next == NULL) { head->prev = NULL; *tail = head; return head; }
+
+    slow = head;
+    fast = head->next;
+    while (fast != NULL && fast->next != NULL) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+
+    right = slow->next;
+    slow->next = NULL;
+    if (right != NULL) right->prev = NULL;
+    head->prev = NULL;
+
+    head = list_sort_chain(head, &left_tail);
+    right = list_sort_chain(right, &right_tail);
+
+    return list_merge_sorted(head, right, tail);
+}
+
+int list_reverse(List* l)
+{
+    ListNode* node;
+    ListNode* old_head;
+
+    if (l == NULL) return -1;
+
+    old_head = l->head;
+    node = l->head;
+    while (node != NULL) {
+        ListNode* next = node->next;
+        node->next = node->prev;
+        node->prev = next;
+        node = next;
+    }
     l->head = l->tail;
-    l->tail = tmp;
+    l->tail = old_head;
     return 0;
 }
 
-ListNode* list_middle(List* l) {
+ListNode* list_middle(List* l)
+{
+    ListNode* slow;
+    ListNode* fast;
+
     if (l == NULL || l->head == NULL) return NULL;
-    ListNode* slow = l->head;
-    ListNode* fast = l->head;
+    slow = l->head;
+    fast = l->head->next;   /* lower middle for even size */
     while (fast != NULL && fast->next != NULL) {
         slow = slow->next;
         fast = fast->next->next;
@@ -698,70 +807,17 @@ ListNode* list_middle(List* l) {
     return slow;
 }
 
-/* ---------- merge sort ---------- */
-
-static ListNode* merge(ListNode* a, ListNode* b) {
-    /* Dummy head on stack: we only use its .next. */
-    ListNode dummy;
-    dummy.key = 0; dummy.prev = NULL; dummy.next = NULL;
-    ListNode* tail = &dummy;
-
-    while (a != NULL && b != NULL) {
-        if (a->key <= b->key) { tail->next = a; a = a->next; }
-        else                  { tail->next = b; b = b->next; }
-        tail = tail->next;
-    }
-    tail->next = (a != NULL) ? a : b;
-    return dummy.next;
-}
-
-static ListNode* split_half(ListNode* head) {
-    /* Returns the head of the second half. */
-    ListNode* slow = head;
-    ListNode* fast = head->next;
-    while (fast != NULL && fast->next != NULL) {
-        slow = slow->next;
-        fast = fast->next->next;
-    }
-    ListNode* second = slow->next;
-    slow->next = NULL;
-    return second;
-}
-
-static ListNode* sort_rec(ListNode* head) {
-    if (head == NULL || head->next == NULL) return head;
-    ListNode* second = split_half(head);
-    ListNode* a = sort_rec(head);
-    ListNode* b = sort_rec(second);
-    return merge(a, b);
-}
-
-static void fix_links(List* l) {
-    ListNode* prev = NULL;
-    ListNode* cur  = l->head;
-    int n = 0;
-    while (cur != NULL) {
-        cur->prev = prev;
-        prev = cur;
-        cur = cur->next;
-        n++;
-    }
-    l->tail = prev;
-    l->size = n;
-}
-
-int list_sort(List* l) {
+int list_sort(List* l)
+{
     if (l == NULL) return -1;
-    if (l->head == NULL || l->head->next == NULL) return 0;
-    l->head = sort_rec(l->head);
-    fix_links(l);
+    l->head = list_sort_chain(l->head, &l->tail);
     return 0;
 }
 ```
 
 ---
 
-# Приложение G — `tests/list_algo_test.cpp`
+# Приложение G - `tests/list_algo_test.cpp`
 
 ```cpp
 /* ============================================================
@@ -774,13 +830,11 @@ int list_sort(List* l) {
 #include <assert.h>
 #include <stdio.h>
 
-/* Build 1..n, return list. */
 static void build(List* l, int n) {
     list_init(l);
     for (int i = 1; i <= n; i++) list_push_back(l, i);
 }
 
-/* Walk forward, assert keys and prev-chain consistency. */
 static void check_forward(List* l, const int* expect, int n) {
     assert(l->size == n);
     ListNode* cur = l->head;
@@ -838,13 +892,13 @@ static void test_middle_one(void) {
 
 static void test_middle_odd(void) {
     List l; build(&l, 5);
-    assert(list_middle(&l)->key == 3);  /* lower middle for 1..5 */
+    assert(list_middle(&l)->key == 3);
     list_free(&l);
 }
 
 static void test_middle_even(void) {
     List l; build(&l, 4);
-    assert(list_middle(&l)->key == 2);  /* lower middle for 1..4 */
+    assert(list_middle(&l)->key == 2);  /* lower middle */
     list_free(&l);
 }
 
@@ -908,7 +962,7 @@ int main(void) {
 
 ---
 
-# Приложение H — `include/algo/hash_algo.hpp`
+# Приложение H - `include/algo/hash_algo.hpp`
 
 ```cpp
 #ifndef ALGO_HASH_ALGO_HPP
@@ -935,7 +989,7 @@ int hash_stats(const Hash* h, HashStats* out);
 
 ---
 
-# Приложение I — `src/hash_algo.cpp`
+# Приложение I - `src/hash_algo.cpp`
 
 ```cpp
 /* ============================================================
@@ -973,7 +1027,7 @@ int hash_stats(const Hash* h, HashStats* out) {
 
 ---
 
-# Приложение J — `tests/hash_algo_test.cpp`
+# Приложение J - `tests/hash_algo_test.cpp`
 
 ```cpp
 /* ============================================================
@@ -1019,14 +1073,23 @@ static void test_spread(void) {
     assert(s.size == 8);
     assert(s.min_chain >= 1);
     assert(s.max_chain <= 8);
-    assert(s.empty_buckets + (s.size > 0 ? 1 : 0) <= 8);
+    assert(s.empty_buckets <= 7);
+    hash_free(&h);
+}
+
+static void test_bad_args(void) {
+    Hash h; assert(hash_init(&h, 8) == 0);
+    HashStats s;
+    assert(hash_stats(NULL, &s) == -1);
+    assert(hash_stats(&h, NULL) == -1);
     hash_free(&h);
 }
 
 int main(void) {
-    printf(">>> test_empty\n");           test_empty();
+    printf(">>> test_empty\n");             test_empty();
     printf(">>> test_all_in_one_bucket\n"); test_all_in_one_bucket();
-    printf(">>> test_spread\n");          test_spread();
+    printf(">>> test_spread\n");            test_spread();
+    printf(">>> test_bad_args\n");          test_bad_args();
     printf("all hash_algo tests passed\n");
     return 0;
 }
@@ -1034,19 +1097,26 @@ int main(void) {
 
 ---
 
-# Приложение K — REPL: изменения (фрагменты)
+# Приложение K - REPL: `execute_line` + batch modes (фрагменты)
 
-Это фрагменты для `src/repl.cpp`. Вставлять в соответствующие секции.
-
-### K.1. Новые include (вверху)
+### K.1. Новые include (вверху `repl.cpp`)
 
 ```cpp
 #include "algo/hash_algo.hpp"
+#include "algo/hash.hpp"
 #include "algo/list_algo.hpp"
+#include "algo/list.hpp"
 #include "algo/tree_algo.hpp"
+#include "algo/tree.hpp"
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stddef.h>
 ```
 
-### K.2. Новые команды (после существующих `cmd_*`)
+### K.2. Новые команды (после `cmd_height`, перед `cmd_draw`)
 
 ```cpp
 static void cmd_validate(void) {
@@ -1097,7 +1167,7 @@ static void cmd_stats(void) {
 }
 ```
 
-### K.3. Обновить `cmd_help` (добавить строки)
+### K.3. Обновить `cmd_help` (вставить после `height`, до `save`)
 
 ```cpp
 "  validate                 tree: BST invariant check\n"
@@ -1108,183 +1178,26 @@ static void cmd_stats(void) {
 "  stats                    hash: chain statistics\n"
 ```
 
-### K.4. Рефакторинг `main` → `execute_line`
+### K.4. `execute_line` (вместо тела цикла `main`)
 
-```cpp
-/* Returns 0 on OK, 1 on command error, 2 on quit. */
-static int execute_line(char* line) {
-    size_t len = strlen(line);
-    while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
-        line[--len] = '\0';
-    }
-
-    char tok[64];
-    char* rest = NULL;
-    char* p = line;
-    if (!next_token(&p, tok, sizeof tok, &rest)) return 0;
-
-    if (strcmp(tok, "quit") == 0 || strcmp(tok, "exit") == 0) return 2;
-    if (strcmp(tok, "help") == 0)    { cmd_help(); return 0; }
-    if (strcmp(tok, "tree") == 0)    { cmd_tree(); return 0; }
-    if (strcmp(tok, "list") == 0)    { cmd_list(); return 0; }
-    if (strcmp(tok, "hash") == 0) {
-        int cap = 16;
-        if (*rest != '\0' && !parse_whole_int(rest, &cap)) {
-            printf("error: bad capacity\n"); return 1;
-        }
-        cmd_hash(cap); return 0;
-    }
-    if (strcmp(tok, "insert") == 0) {
-        int k;
-        if (!parse_whole_int(rest, &k)) { printf("error: insert needs an integer\n"); return 1; }
-        cmd_insert(k); return 0;
-    }
-    if (strcmp(tok, "find") == 0) {
-        int k;
-        if (!parse_whole_int(rest, &k)) { printf("error: find needs an integer\n"); return 1; }
-        cmd_find(k); return 0;
-    }
-    if (strcmp(tok, "remove") == 0) {
-        int k;
-        if (!parse_whole_int(rest, &k)) { printf("error: remove needs an integer\n"); return 1; }
-        cmd_remove(k); return 0;
-    }
-    if (strcmp(tok, "push_back") == 0) {
-        int k;
-        if (!parse_whole_int(rest, &k)) { printf("error: push_back needs an integer\n"); return 1; }
-        cmd_push_back(k); return 0;
-    }
-    if (strcmp(tok, "push_front") == 0) {
-        int k;
-        if (!parse_whole_int(rest, &k)) { printf("error: push_front needs an integer\n"); return 1; }
-        cmd_push_front(k); return 0;
-    }
-    if (strcmp(tok, "print") == 0) { cmd_print(); return 0; }
-    if (strcmp(tok, "draw") == 0 ||
-        strcmp(tok, "schema") == 0 ||
-        strcmp(tok, "ascii") == 0) { cmd_draw(); return 0; }
-    if (strcmp(tok, "size") == 0)   { cmd_size(); return 0; }
-    if (strcmp(tok, "height") == 0) { cmd_height(); return 0; }
-    if (strcmp(tok, "save") == 0) {
-        if (*rest == '\0') { printf("error: save needs a file path\n"); return 1; }
-        return save_current(rest) == 0 ? 0 : 1;
-    }
-    if (strcmp(tok, "load") == 0) {
-        if (*rest == '\0') { printf("error: load needs a file path\n"); return 1; }
-        return load_from(rest) == 0 ? 0 : 1;
-    }
-    if (strcmp(tok, "free") == 0) { cmd_free(); return 0; }
-    if (strcmp(tok, "validate") == 0) { cmd_validate(); return 0; }
-    if (strcmp(tok, "min") == 0)      { cmd_min(); return 0; }
-    if (strcmp(tok, "max") == 0)      { cmd_max(); return 0; }
-    if (strcmp(tok, "balance") == 0)  { cmd_balance(); return 0; }
-    if (strcmp(tok, "reverse") == 0)  { cmd_reverse(); return 0; }
-    if (strcmp(tok, "sort") == 0)     { cmd_sort(); return 0; }
-    if (strcmp(tok, "stats") == 0)    { cmd_stats(); return 0; }
-
-    printf("error: unknown command '%s' (try 'help')\n", tok);
-    return 1;
-}
-```
+См. полный `repl.cpp` в `src/repl.cpp` - `execute_line` возвращает `0`/`1`/`2`, все ветки `strcmp` перенесены туда, `save`/`load` возвращают `0`/`1`.
 
 ### K.5. Batch-режимы и новый `main`
 
-```cpp
-/* Split a string by ';' and execute each piece. */
-static int run_exec_string(char* s, int keep_going) {
-    int rc = 0;
-    char* start = s;
-    for (;;) {
-        char* semi = strchr(start, ';');
-        if (semi != NULL) *semi = '\0';
-        int r = execute_line(start);
-        if (r == 2) return 0;          /* quit */
-        if (r != 0) { rc = 1; if (!keep_going) return rc; }
-        if (semi == NULL) break;
-        start = semi + 1;
-    }
-    return rc;
-}
-
-static int run_script(const char* path, int keep_going) {
-    FILE* f = fopen(path, "r");
-    if (f == NULL) {
-        printf("error: cannot open '%s': %s\n", path, strerror(errno));
-        return 1;
-    }
-    char line[256];
-    int rc = 0;
-    while (fgets(line, sizeof line, f) != NULL) {
-        int r = execute_line(line);
-        if (r == 2) break;
-        if (r != 0) { rc = 1; if (!keep_going) break; }
-    }
-    fclose(f);
-    return rc;
-}
-
-static void usage(const char* prog) {
-    printf("usage: %s [--exec \"cmd; cmd; ...\"] [--script FILE] [--keep-going]\n", prog);
-    printf("       (no args: interactive mode)\n");
-}
-
-int main(int argc, char** argv) {
-    const char* exec_str = NULL;
-    const char* script   = NULL;
-    int keep_going = 0;
-
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--exec") == 0 && i + 1 < argc) {
-            exec_str = argv[++i];
-        } else if (strcmp(argv[i], "--script") == 0 && i + 1 < argc) {
-            script = argv[++i];
-        } else if (strcmp(argv[i], "--keep-going") == 0) {
-            keep_going = 1;
-        } else if (strcmp(argv[i], "--help") == 0) {
-            usage(argv[0]); return 0;
-        } else {
-            usage(argv[0]); return 1;
-        }
-    }
-
-    if (exec_str != NULL) {
-        char buf[1024];
-        snprintf(buf, sizeof buf, "%s", exec_str);
-        return run_exec_string(buf, keep_going);
-    }
-    if (script != NULL) {
-        return run_script(script, keep_going);
-    }
-
-    /* interactive */
-    char line[256];
-    printf("algo repl. type 'help' for commands, 'quit' to exit.\n");
-    for (;;) {
-        printf("> ");
-        fflush(stdout);
-        if (fgets(line, sizeof line, stdin) == NULL) break;
-        int r = execute_line(line);
-        if (r == 2) break;
-    }
-    teardown();
-    printf("bye\n");
-    return 0;
-}
-```
-
-Замечание: `execute_line` модифицирует строку (обрезает `\n`, `next_token` двигает указатели, но не пишет). `run_exec_string` копирует `--exec` в буфер, чтобы не портить `argv`.
+См. полный `repl.cpp` в `src/repl.cpp` - `run_exec_string`, `run_script`, `usage`, `main(argc, argv)` с разбором `--exec`/`--script`/`--keep-going`/`--help`.
 
 ---
 
-# Приложение L — `tests/run_golden.sh`
+# Приложение L - `tests/run_golden.sh`
 
-```sh
-#!/bin/sh
+```bash
+#!/usr/bin/env bash
 # Golden-output tests for the REPL.
 # Each caseNN.in is fed via --script; stdout is compared to caseNN.out.
 # Normalization: strip prompts, replace file paths with <FILE>.
 
 set -e
+export LC_ALL=C
 REPL=./build/repl
 DIR=tests/repl_golden
 TMP=$(mktemp -d)
@@ -1318,192 +1231,39 @@ fi
 echo "all golden tests passed"
 ```
 
-Замечание: `<(...)` — process substitution, требует bash. Заменить `#!/bin/sh` на `#!/usr/bin/env bash` (или на `#!/bin/bash`). Makefile вызывает `sh tests/run_golden.sh` — поправить на `bash tests/run_golden.sh`.
+---
+
+# Приложение M - Golden-кейсы
+
+См. `tests/repl_golden/case01.in` … `case10.in` и соответствующие `.out` в репозитории. Кейсы:
+
+1. tree: insert/draw/validate/min/max/height/size
+2. tree: balance на вырожденном (1..7 → draw)
+3. list: push_back/push_front/draw/reverse/draw/sort/draw
+4. hash: create/insert/stats/draw/remove
+5. save/load tree round-trip
+6. save/load list round-trip
+7. save/load hash round-trip
+8. ошибки: `insert abc`, `height` без tree, `hash 0`, `load nosuchfile`
+9. дубликаты: tree/hash → `error: insert N failed (duplicate?)`, list → `ok`
+10. `free` + повторное создание
+
+`.repl`-файлы от case05–07 генерируются в `tests/repl_golden/` и игнорируются `.gitignore` (`*.repl`).
 
 ---
 
-# Приложение M — Golden-кейсы (фрагменты)
-
-### `tests/repl_golden/case01.in`
-```
-tree
-insert 5
-insert 3
-insert 8
-insert 1
-insert 4
-insert 7
-insert 9
-draw
-validate
-min
-max
-height
-size
-```
-
-### `tests/repl_golden/case01.out`
-```
-tree created
-ok
-ok
-ok
-ok
-ok
-ok
-ok
-5
-|-- 3
-|   |-- 1
-|   `-- 4
-`-- 8
-    |-- 7
-    `-- 9
-size=7 height=3
-valid
-1
-9
-3
-7
-```
-
-### `tests/repl_golden/case02.in`
-```
-tree
-insert 1
-insert 2
-insert 3
-insert 4
-insert 5
-insert 6
-insert 7
-draw
-balance
-draw
-```
-
-### `tests/repl_golden/case02.out`
-```
-tree created
-ok
-ok
-ok
-ok
-ok
-ok
-ok
-1
-`-- 2
-    `-- 3
-        `-- 4
-            `-- 5
-                `-- 6
-                    `-- 7
-size=7 height=7
-ok
-4
-|-- 2
-|   |-- 1
-|   `-- 3
-`-- 6
-    |-- 5
-    `-- 7
-size=7 height=3
-```
-
-### `tests/repl_golden/case03.in`
-```
-list
-push_back 1
-push_back 2
-push_back 3
-draw
-reverse
-draw
-push_front 0
-draw
-sort
-draw
-```
-
-### `tests/repl_golden/case03.out`
-```
-list created
-ok
-ok
-ok
-head [1] <-> [2] <-> [3] tail
-size=3
-ok
-head [3] <-> [2] <-> [1] tail
-size=3
-ok
-head [0] <-> [3] <-> [2] <-> [1] tail
-size=4
-ok
-head [0] <-> [1] <-> [2] <-> [3] tail
-size=4
-```
-
-### `tests/repl_golden/case04.in`
-```
-hash 8
-insert 10
-insert 20
-insert 30
-stats
-draw
-remove 20
-stats
-```
-
-Ожидаемый `.out` зависит от FNV-1a раскладки — **сгенерировать один раз** прогоном `./build/repl --script case04.in > case04.out` после реализации и вручную проверить, что числа корректны. Это нормально для golden-тестов: эталон создаётся из проверенного вручную вывода.
-
-### `tests/repl_golden/case08.in`
-```
-insert abc
-height
-hash 0
-load nosuchfile.repl
-```
-
-### `tests/repl_golden/case08.out`
-```
-error: insert needs an integer
-error: no structure
-error: height requires a tree (current: none)
-error: bad capacity 0
-warning: 'nosuchfile.repl' does not end with .repl
-error: cannot open 'nosuchfile.repl': No such file or directory
-```
-
-(Точные строки сверить с реальным выводом REPL — `strerror` может отличаться по локали; при необходимости нормализовать в `run_golden.sh`.)
-
-### Остальные кейсы
-- `case05` — save/load tree (путь нормализуется);
-- `case06` — save/load list;
-- `case07` — save/load hash;
-- `case09` — дубликаты: `tree; insert 5; insert 5; insert 5` → два `warning: duplicate...` или `error: insert 5 failed` (в зависимости от того, что печатает REPL — сверить);
-- `case10` — `free` + повторное создание.
-
----
-
-# Приложение N — итоговый `make test`
-
-После этапа 7 в Makefile:
+# Приложение N - итоговый `make test`
 
 ```make
 test: $(TEST_BINS) test-repl
 	@for t in $(TEST_BINS); do echo "=== $$t ==="; ./$$t || exit 1; done
 	@echo "all unit tests passed"
-```
 
-И `run_golden.sh` вызывать через `bash`:
-
-```make
 test-repl: $(REPL_BIN)
 	@bash tests/run_golden.sh
 ```
+
+`make test` = unit + golden. `run_golden.sh` вызывается через `bash` (нужен `<( )`).
 
 ---
 
@@ -1536,11 +1296,13 @@ tests/
     repl_golden/
         case01.in/.out
         ... (10 кейсов)
-Makefile              (новые цели: repl, test-repl, авто-сборка тестов)
+Makefile              (новые цели: repl, test-repl, test = unit + golden)
 ROADMAP.md            (этот файл)
-CONTRIBUTING.md       (опционально: конвенции из раздела 0)
-README.md             (обновить: API, REPL, Tests, v1.0)
-ALGO_EXPLAINED.md     (обновить: Algo layer, Batch mode)
+README.md             (v1.0: API, REPL, batch, Tests, CI)
+ALGO_EXPLAINED.md     (v1.0: Algo layer, Batch mode, Golden tests)
+LICENSE               (MIT)
+.github/workflows/ci.yml (make + make test на push/PR)
+.gitignore            (build/, *.o, *.repl, *.bak, temp notes)
 ```
 
 Проверка готовности:
@@ -1551,3 +1313,7 @@ make test          # unit + golden, всё зелёное
 ./build/repl --exec "tree; insert 5; balance; draw"
 ./build/repl       # интерактив по-прежнему работает
 ```
+
+---
+
+**v1.0 - done.**

@@ -1,17 +1,19 @@
 **ALGO_EXPLAINED.md**
-Полный разбор библиотеки algo: от C++-минимума до REPL и слоя алгоритмов.
+Полный разбор библиотеки algo: от C++-минимума до REPL, слоя алгоритмов
+и batch-режимов.
 Стиль: 80s C-flavoured C++.
 Это не исходник, а объяснение по README.md и .cpp/.hpp.
 
 # algo - как устроена система
 
-**Статус:** experiment. Not a product. Private repo:
+**Статус:** v1.0 - experiment, not a product. Private repo:
 https://github.com/AlbertFisher666/algo
 
 Проект `algo` - маленькая библиотека алгоритмов и структур данных:
 BST, двусвязный список и хеш-таблица с цепочками. Сверху - слой
 алгоритмов над каждой структурой (`*_algo`) и интерактивный REPL
-с ASCII-диаграммами и сохранением/загрузкой в текстовый `.repl`.
+с ASCII-диаграммами, сохранением/загрузкой в текстовый `.repl`
+и batch-режимами (`--exec`, `--script`).
 
 Главная особенность: это C++ только по факту компиляции. Внутри -
 стиль «80s C-flavoured C++»: `struct`, свободные функции, `new/delete`,
@@ -203,13 +205,15 @@ src/hash.cpp                 hash - реализация
 src/tree_algo.cpp            BST algorithms - реализация
 src/list_algo.cpp            DLL algorithms - реализация
 src/hash_algo.cpp            hash introspection - реализация
-src/repl.cpp                 интерактивный REPL
+src/repl.cpp                 интерактивный REPL + batch
 tests/tree_test.cpp          тесты BST
 tests/list_test.cpp          тесты DLL
 tests/hash_test.cpp          тесты hash
 tests/tree_algo_test.cpp     тесты tree_algo
 tests/list_algo_test.cpp     тесты list_algo
 tests/hash_algo_test.cpp     тесты hash_algo
+tests/run_golden.sh          REPL golden - runner
+tests/repl_golden/           REPL golden - 10 кейсов (.in/.out)
 Makefile                     правила сборки
 ```
 
@@ -226,10 +230,13 @@ tree_algo_test.cpp / list_algo_test.cpp / hash_algo_test.cpp
    src/*.cpp  --->  new/delete, указатели, printf
         ^
         |
-src/repl.cpp ---> команды пользователя, draw, save/load
+src/repl.cpp ---> execute_line ---> cmd_* ---> API
+        ^
+        |
+tests/run_golden.sh ---> repl --script ---> tests/repl_golden/*.in
 ```
 
-Тесты и REPL - это две разные «верхушки» над одной библиотекой.
+Тесты, golden и REPL - три разные «верхушки» над одной библиотекой.
 
 ---
 
@@ -238,9 +245,10 @@ src/repl.cpp ---> команды пользователя, draw, save/load
 Требования из README:
 
 - `g++` с C++17;
-- `make`.
+- `make`;
+- `bash` (для golden).
 
-Сборка тестов:
+Сборка тестов (unit + golden):
 
 ```sh
 make test
@@ -249,10 +257,17 @@ make test
 Ожидаемый вывод заканчивается на:
 
 ```text
-all tests passed
+all unit tests passed
+all golden tests passed
 ```
 
-Сборка REPL через Makefile:
+Только golden:
+
+```sh
+make test-repl
+```
+
+Сборка REPL:
 
 ```sh
 make repl
@@ -775,19 +790,17 @@ free      -> teardown();
 quit/exit -> teardown(); выход.
 ```
 
-### 9.2. Разбор команд
+### 9.2. `execute_line` - единый диспетчер
 
-`main` читает строку через `fgets`, убирает `\n`/`\r`, затем `next_token`
-выделяет первое слово. Дальше - плоская цепочка `strcmp`:
+Диспетчеризация вынесена из `main` в `execute_line(char* line)`:
 
-```cpp
-if (strcmp(tok, "quit") == 0 || strcmp(tok, "exit") == 0) ...
-else if (strcmp(tok, "help") == 0) ...
-else if (strcmp(tok, "tree") == 0) ...
-...
-```
+- `0` - команда выполнена (OK);
+- `1` - ошибка команды (неизвестная команда, плохой аргумент,
+  `need(...)` не прошёл, `save`/`load` вернули `-1`);
+- `2` - `quit`/`exit`.
 
-Для команд с аргументом используется `parse_whole_int`:
+`execute_line` обрезает `\n`/`\r`, вызывает `next_token`, затем плоскую
+`strcmp`-цепочку. Для команд с аргументом - `parse_whole_int`:
 
 ```cpp
 static int parse_whole_int(const char* s, int* out) {
@@ -806,6 +819,10 @@ static int parse_whole_int(const char* s, int* out) {
 Он требует, чтобы строка была целиком одним целым: без «хвостов»,
 без пустоты, без переполнения `int`.
 
+`execute_line` **модифицирует** строку (обрезает `\n`, `next_token`
+двигает указатели). Поэтому в batch-режимах `--exec` копируется в
+буфер перед разбором.
+
 ### 9.3. Команды
 
 - `tree`, `list`, `hash [cap]` - создать структуру.
@@ -817,6 +834,12 @@ static int parse_whole_int(const char* s, int* out) {
 - `draw | schema | ascii` - ASCII-диаграмма.
 - `size` - текущий размер.
 - `height` - высота, только tree.
+- `validate` - BST-инвариант, только tree.
+- `min | max` - крайние ключи, только tree.
+- `balance` - перестроить сбалансированно, только tree.
+- `reverse` - развернуть in place, только list.
+- `sort` - stable merge sort, только list.
+- `stats` - статистика цепочек, только hash.
 - `save <file.repl>`, `load <file.repl>` - сохранение/загрузка.
 - `free` - уничтожить текущую структуру.
 - `help`, `quit | exit`.
@@ -864,9 +887,10 @@ hash (capacity=8, size=3)
 load factor: 0.37
 ```
 
-Load factor считается целочисленно:
+Load factor в `draw` считается целочисленно:
 `lf100 = size * 100 / capacity`, затем печатается `lf100 / 100` и
-`lf100 % 100`.
+`lf100 % 100`. В `stats` - `double` (`3/8 → 0.38`). Это разные формулы,
+и это нормально.
 
 ### 9.5. Save: `.repl`
 
@@ -938,36 +962,43 @@ tree
 - **hash**: capacity сохраняется, но при вставке в голову цепочки порядок
   элементов внутри бакета может развернуться.
 
+### 9.7. Batch mode
+
+`main(argc, argv)` разбирает флаги:
+
+- без аргументов - интерактив (приветствие, `> `, `execute_line` в цикле,
+  выход на `2`);
+- `--exec "<commands>"` - копирует строку в буфер, `run_exec_string`
+  разбивает по `;`, `execute_line` каждую, стоп на `1` (если нет
+  `--keep-going`), на `2` - вернуть `0`;
+- `--script <file>` - `run_script` читает файл через `fgets`,
+  `execute_line` каждую строку, те же правила остановки;
+- `--keep-going` - не останавливаться на ошибках (оба batch-режима);
+- `--help` - `usage`, код `0`;
+- неизвестный флаг - `usage`, код `1`.
+
+В batch-режимах **не печатается** `> ` и приветствие. Код возврата:
+`0` при успехе, `1` при ошибке команды. `quit`/`exit` внутри
+`--exec`/`--script` останавливает batch и возвращает `0`.
+
+`run_exec_string` не использует `strtok`, потому что `strtok` мутирует
+строку и «съедает» пустые куски; свой цикл по `strchr(start, ';')`
+проще и предсказуемее.
+
 ---
 
 ## 10. Тесты
 
-Тесты - отдельные программы с `main` и `assert` из `<assert.h>`.
+### 10.1. Unit-тесты
+
+Отдельные программы с `main` и `assert` из `<assert.h>`.
 Никакого фреймворка.
 
-`tree_test.cpp` проверяет:
+`tree_test.cpp`, `list_test.cpp`, `hash_test.cpp` - базовые операции
+структур (insert/find/remove/height/print, push/find/remove,
+init/insert/collision/remove).
 
-- insert: пустое, обычное, дубликат;
-- find: есть/нет;
-- height: 0, 1, 2, 3 уровня;
-- remove: лист, один ребёнок, два ребёнка;
-- print: in-order.
-
-`list_test.cpp` проверяет:
-
-- init: пустой;
-- push back/front;
-- find: есть/нет;
-- remove: голова, хвост, середина.
-
-`hash_test.cpp` проверяет:
-
-- init: плохая capacity;
-- insert: дубликат, коллизия;
-- find: есть/нет;
-- remove: есть/нет.
-
-`tree_algo_test.cpp` проверяет:
+`tree_algo_test.cpp`:
 
 - validate: пустое, хорошее, битое;
 - min/max: пустое, крайние ключи;
@@ -976,14 +1007,14 @@ tree
 - balance: вырожденное 1..7 → высота 3, validate;
 - bfs: уровне-порядок через колбэк.
 
-`list_algo_test.cpp` проверяет:
+`list_algo_test.cpp`:
 
 - reverse: пусто, один, чётное, нечётное - head/tail/prev/next;
 - middle: пусто, один, нечётное, чётное (нижняя);
 - sort: пусто, один, обратный вход, отсортированный вход, дубликаты;
 - `check_forward` проверяет `prev`-цепочку и `tail`.
 
-`hash_algo_test.cpp` проверяет:
+`hash_algo_test.cpp`:
 
 - пустая: capacity 8, всё по нулям, `empty_buckets == 8`;
 - все в одном бакете: capacity 1, три ключа, `min == max == 3`;
@@ -991,9 +1022,39 @@ tree
 - bad args: `NULL` h / `NULL` out → `-1`.
 
 `assert` при провале просто abort-ит программу. `main` печатает
-`>>> test_name`, затем запускает тест. В конце - `all tests passed`
-(или `all <struct> tests passed`). REPL автоматическими тестами пока
-не покрыт - README говорит, что он проверяется вручную.
+`>>> test_name`, затем запускает тест. В конце - `all <struct> tests passed`.
+
+### 10.2. Golden REPL-тесты
+
+`tests/repl_golden/` - 10 кейсов: `case01.in` … `case10.in` и
+соответствующие `.out`. Каждый `.in` подаётся через `--script`,
+вывод сравнивается с `.out` через `diff`.
+
+`tests/run_golden.sh`:
+
+- `set -e`, `export LC_ALL=C` (чтобы `strerror` был стабилен);
+- `normalize()`: `sed` убирает `^> ` (на случай, если попадёт),
+  заменяет `/tmp/...` и `tests/repl_golden/...repl` на `<FILE>`;
+- цикл по `$DIR/*.in`, для каждого - `--script`, `diff -u`
+  нормализованных `.out` и `.got`;
+- при расхождении - `FAIL`, `cat diff`, `exit 1`;
+- в конце - `all golden tests passed`.
+
+Кейсы:
+
+1. tree: insert/draw/validate/min/max/height/size
+2. tree: balance на вырожденном (1..7 → draw)
+3. list: push_back/push_front/draw/reverse/draw/sort/draw
+4. hash: create/insert/stats/draw/remove
+5. save/load tree round-trip
+6. save/load list round-trip
+7. save/load hash round-trip
+8. ошибки: `insert abc`, `height` без tree, `hash 0`, `load nosuchfile`
+9. дубликаты: tree/hash → `error: insert N failed (duplicate?)`,
+   list → `ok`
+10. `free` + повторное создание
+
+`make test` = unit + golden. `make test-repl` = только golden.
 
 ---
 
@@ -1013,6 +1074,10 @@ ok
 |-- 3
 `-- 8
 size=3 height=2
+> validate
+valid
+> balance
+ok
 > save demo.repl
 saved demo.repl (3 keys)
 > free
@@ -1081,16 +1146,29 @@ load может отличаться от исходного, если исхо�
 18. **`hash_stats.min_chain` - только по непустым бакетам.**
     `0` для пустой таблицы; это зафиксировано в комментарии в
     `hash_algo.hpp` и в тесте `test_empty`.
+19. **`load_factor` в `draw` и `stats` считается по-разному.**
+    `draw`: целочисленно, `lf100 = size * 100 / capacity`, печать
+    `lf100 / 100` и `lf100 % 100` (`3/8 → 0.37`).
+    `stats`: `double`, `(double)size / capacity` (`3/8 → 0.38`).
+    Это не ошибка - разные формулы для разных целей. Если нужно
+    единообразие - привести `draw` к `double` (но тогда golden-кейс
+    `case04` поменяется).
+20. **`execute_line` модифицирует строку.** `--exec` копирует `argv`
+    в буфер перед разбором; `--script` читает в `char line[256]`,
+    которую можно модифицировать. Интерактив - тоже `char line[256]`.
 
 ---
 
 ## 13. Итоговая схема
 
+```text
                  +-------------------+
                  |      repl.cpp     |
                  |  g_kind, teardown |
-                 |  команды, draw    |
+                 |  execute_line     |
+                 |  cmd_*, draw      |
                  |  save/load        |
+                 |  --exec/--script  |
                  +---------+---------+
                            |
           +----------------+----------------+
@@ -1115,13 +1193,19 @@ load может отличаться от исходного, если исхо�
           |
           +----------------+----------------+
                            |
-                     printf / FILE*
-                     fixed buffers
-                     no STL, no RAII
+          +----------------+----------------+
+          |                                 |
+          v                                 v
+   tests/*_test.cpp                  tests/run_golden.sh
+   assert-based                      repl --script
+   make test (unit)                  tests/repl_golden/*.in/.out
+                                     make test-repl (golden)
+```
 
 Это и есть вся система: три ручные структуры данных с C-подобным API,
-слой алгоритмов над каждой, тонкий REPL-слой с одной живой структурой,
-ASCII-визуализация, текстовый save/load и assert-тесты.
+слой алгоритмов над каждой, REPL с одной живой структурой, ASCII-
+визуализация, текстовый save/load, интерактив и batch-режимы,
+unit-тесты и golden-тесты.
 
 /* ============================================================
  * Original code and README:
