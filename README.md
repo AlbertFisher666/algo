@@ -3,7 +3,7 @@
 A small algorithm library. One file per structure.
 No frameworks, no dependencies, 80s C-flavoured C++.
 
-**Status:** v1.0 - experiment, not a product. Private repo:
+**Status:** v1.0.2 - experiment, not a product. Private repo:
 https://github.com/AlbertFisher666/algo
 
 ## Requirements
@@ -31,29 +31,29 @@ To build the REPL:
 
 ## Layout
 
-    include/algo/tree.hpp        BST - contract
-    include/algo/list.hpp        DLL - contract
-    include/algo/hash.hpp        hash - contract
-    include/algo/tree_algo.hpp   BST algorithms - contract
-    include/algo/list_algo.hpp   DLL algorithms - contract
-    include/algo/hash_algo.hpp   hash introspection - contract
-    src/tree.cpp                 BST - implementation
-    src/list.cpp                 DLL - implementation
-    src/hash.cpp                 hash - implementation
-    src/tree_algo.cpp            BST algorithms - implementation
-    src/list_algo.cpp            DLL algorithms - implementation
-    src/hash_algo.cpp            hash introspection - implementation
-    src/repl.cpp                 interactive REPL + batch modes
-    tests/tree_test.cpp          BST - tests
-    tests/list_test.cpp          DLL - tests
-    tests/hash_test.cpp          hash - tests
-    tests/tree_algo_test.cpp     BST algorithms - tests
-    tests/tree_algo_bounds_test.cpp BST algorithm integer-boundary tests
-    tests/list_algo_test.cpp     DLL algorithms - tests
-    tests/hash_algo_test.cpp     hash introspection - tests
-    tests/run_golden.sh          REPL golden tests - runner
-    tests/repl_golden/           REPL golden tests - 10 cases (.in/.out)
-    Makefile                     build rules
+    include/algo/tree.hpp            BST - contract
+    include/algo/list.hpp            DLL - contract
+    include/algo/hash.hpp            hash - contract
+    include/algo/tree_algo.hpp       BST algorithms - contract
+    include/algo/list_algo.hpp       DLL algorithms - contract
+    include/algo/hash_algo.hpp       hash introspection - contract
+    src/tree.cpp                     BST - implementation
+    src/list.cpp                     DLL - implementation
+    src/hash.cpp                     hash - implementation
+    src/tree_algo.cpp                BST algorithms - implementation
+    src/list_algo.cpp                DLL algorithms - implementation
+    src/hash_algo.cpp                hash introspection - implementation
+    src/repl.cpp                     interactive REPL + batch modes
+    tests/tree_test.cpp              BST - tests
+    tests/list_test.cpp              DLL - tests
+    tests/hash_test.cpp              hash - tests
+    tests/tree_algo_test.cpp         BST algorithms - tests
+    tests/tree_algo_bounds_test.cpp  BST algorithm integer-boundary tests
+    tests/list_algo_test.cpp         DLL algorithms - tests
+    tests/hash_algo_test.cpp         hash introspection - tests
+    tests/run_golden.sh              REPL golden tests - runner
+    tests/repl_golden/               REPL golden tests - 10 cases (.in/.out)
+    Makefile                         build rules
 
 ## Build the REPL
 
