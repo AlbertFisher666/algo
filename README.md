@@ -48,6 +48,7 @@ To build the REPL:
     tests/list_test.cpp          DLL - tests
     tests/hash_test.cpp          hash - tests
     tests/tree_algo_test.cpp     BST algorithms - tests
+    tests/tree_algo_bounds_test.cpp BST algorithm integer-boundary tests
     tests/list_algo_test.cpp     DLL algorithms - tests
     tests/hash_algo_test.cpp     hash introspection - tests
     tests/run_golden.sh          REPL golden tests - runner
@@ -298,6 +299,11 @@ Unit tests (assert-based, no framework):
 - from_sorted_array: perfectly balanced, validate
 - balance: degenerate 1..7 -> height 3, validate
 - bfs: level-order via callback
+
+`tree_algo_bounds_test.cpp` covers:
+
+- `INT_MIN` / `INT_MAX`: build from a sorted array, validate,
+min / max, and in-order output.
 
 `list_algo_test.cpp` covers:
 

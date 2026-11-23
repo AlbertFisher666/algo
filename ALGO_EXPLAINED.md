@@ -210,6 +210,7 @@ tests/tree_test.cpp          тесты BST
 tests/list_test.cpp          тесты DLL
 tests/hash_test.cpp          тесты hash
 tests/tree_algo_test.cpp     тесты tree_algo
+tests/tree_algo_bounds_test.cpp границы int для tree_algo
 tests/list_algo_test.cpp     тесты list_algo
 tests/hash_algo_test.cpp     тесты hash_algo
 tests/run_golden.sh          REPL golden - runner
@@ -1006,6 +1007,13 @@ init/insert/collision/remove).
 - from_sorted_array: сбалансировано, validate;
 - balance: вырожденное 1..7 → высота 3, validate;
 - bfs: уровне-порядок через колбэк.
+
+`tree_algo_bounds_test.cpp`:
+
+- проверяет границы `int`: `INT_MIN` / `INT_MAX`
+- При построеннии дерева из отсортированного массива
+- При проверки `tree_validate`
+- Поиск минимума и максимума и преобразование в in-order массив.
 
 `list_algo_test.cpp`:
 

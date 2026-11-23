@@ -1,19 +1,30 @@
+/* ============================================================
+ * tree_algo_bounds_test.cpp
+ * Boundary tests for tree_algo. Assert-based, no frameworks.
+ *
+ * Style: 80s C-flavoured C++.
+ *
+ * Made by Albert Ghosting Frangle (aka Albert Fisher)
+ * ============================================================
+ */
+
+#include "algo/tree.hpp"
+#include "algo/tree_algo.hpp"
+
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 
-#include "algo/tree.hpp"
-#include "algo/tree_algo.hpp"
+/* ============================================================
+ * Integer boundaries
+ * ============================================================
+ */
 
 static void test_int_boundaries(void) {
     Tree t;
     tree_init(&t);
 
-    int keys[4];
-    keys[0] = INT_MIN;
-    keys[1] = -1;
-    keys[2] = 0;
-    keys[3] = INT_MAX;
+    int keys[] = {INT_MIN, -1, 0, INT_MAX};
 
     assert(tree_from_sorted_array(&t, keys, 4) == 0);
     assert(tree_validate(&t) == 1);
@@ -35,6 +46,11 @@ static void test_int_boundaries(void) {
 
     tree_free(&t);
 }
+
+/* ============================================================
+ * main
+ * ============================================================
+ */
 
 int main(void) {
     printf(">>> test_int_boundaries\n");
