@@ -6,7 +6,7 @@
 
 # algo - как устроена система
 
-**Статус:** v1.0 - experiment, not a product. Private repo:
+**Статус:** v1.0.2 - experiment, not a product. Private repo:
 https://github.com/AlbertFisher666/algo
 
 Проект `algo` - маленькая библиотека алгоритмов и структур данных:
@@ -193,29 +193,29 @@ REPL не использует `std::cin`/`std::cout`. Используются:
 ## 2. Карта проекта
 
 ```text
-include/algo/tree.hpp        BST - контракт
-include/algo/list.hpp        DLL - контракт
-include/algo/hash.hpp        hash - контракт
-include/algo/tree_algo.hpp   BST algorithms - контракт
-include/algo/list_algo.hpp   DLL algorithms - контракт
-include/algo/hash_algo.hpp   hash introspection - контракт
-src/tree.cpp                 BST - реализация
-src/list.cpp                 DLL - реализация
-src/hash.cpp                 hash - реализация
-src/tree_algo.cpp            BST algorithms - реализация
-src/list_algo.cpp            DLL algorithms - реализация
-src/hash_algo.cpp            hash introspection - реализация
-src/repl.cpp                 интерактивный REPL + batch
-tests/tree_test.cpp          тесты BST
-tests/list_test.cpp          тесты DLL
-tests/hash_test.cpp          тесты hash
-tests/tree_algo_test.cpp     тесты tree_algo
-tests/tree_algo_bounds_test.cpp границы int для tree_algo
-tests/list_algo_test.cpp     тесты list_algo
-tests/hash_algo_test.cpp     тесты hash_algo
-tests/run_golden.sh          REPL golden - runner
-tests/repl_golden/           REPL golden - 10 кейсов (.in/.out)
-Makefile                     правила сборки
+include/algo/tree.hpp            BST - контракт
+include/algo/list.hpp            DLL - контракт
+include/algo/hash.hpp            hash - контракт
+include/algo/tree_algo.hpp       BST algorithms - контракт
+include/algo/list_algo.hpp       DLL algorithms - контракт
+include/algo/hash_algo.hpp       hash introspection - контракт
+src/tree.cpp                     BST - реализация
+src/list.cpp                     DLL - реализация
+src/hash.cpp                     hash - реализация
+src/tree_algo.cpp                BST algorithms - реализация
+src/list_algo.cpp                DLL algorithms - реализация
+src/hash_algo.cpp                hash introspection - реализация
+src/repl.cpp                     интерактивный REPL + batch
+tests/tree_test.cpp              тесты BST
+tests/list_test.cpp              тесты DLL
+tests/hash_test.cpp              тесты hash
+tests/tree_algo_test.cpp         тесты tree_algo
+tests/tree_algo_bounds_test.cpp  границы int для tree_algo
+tests/list_algo_test.cpp         тесты list_algo
+tests/hash_algo_test.cpp         тесты hash_algo
+tests/run_golden.sh              REPL golden - runner
+tests/repl_golden/               REPL golden - 10 кейсов (.in/.out)
+Makefile                         правила сборки
 ```
 
 Поток данных:
