@@ -1,7 +1,7 @@
 # CONTRIBUTING - algo
 
 Conventions for this repository. Adapted from `~/Documents/self/PROTOCOL.md`
-and `af.md` §5, but **not** a copy: `algo` is a modular library, CP+ is a
+and `af.md` section 5, but **not** a copy: `algo` is a modular library, CP+ is a
 monolith. The differences below are deliberate.
 
 ## Style
@@ -15,12 +15,12 @@ monolith. The differences below are deliberate.
 - no STL containers, no exceptions
 - `-Wall -Wextra` clean, zero warnings
 
-Same as `cpvm.cpp`, same as PROTOCOL §6.
+Same as `cpvm.cpp`, same as PROTOCOL section 6.
 
 ## Modularity (differs from CP+)
 
 CP+ is a monolith: one file, sections with numbers, never split
-(PROTOCOL §11, af.md §5). **`algo` is the opposite.** Each structure
+(PROTOCOL section 11, af.md section 5). **`algo` is the opposite.** Each structure
 gets its own header + source + test:
 
     include/algo/<name>.hpp
@@ -28,7 +28,7 @@ gets its own header + source + test:
     tests/<name>_test.cpp
 
 Do not merge `tree.cpp` and `tree_algo.cpp`. Do not put everything in
-one file. The modular split is the point of this project (ROADMAP §0.2).
+one file. The modular split is the point of this project (ROADMAP section 0.2).
 
 ## API conventions (ROADMAP §0.4)
 
@@ -60,14 +60,14 @@ it does not split - it is a direction, not a task. Write it to
 6. If clean - commit. If error - roll back.
 
 For refactoring: checklist -> script -> run **without** `-i` ->
-`diff` -> `mv` -> compile -> test. Same as PROTOCOL §6.
+`diff` -> `mv` -> compile -> test. Same as PROTOCOL section 6.
 
 ## What NOT to do (adapted from PROTOCOL §11)
 
 - Do not split `cpvm.cpp` - it is not here, but the principle stands
   in reverse: **do** split `algo`. Do not merge modules.
 - Do not add STL, iostream, exceptions, RAII - against style.
-- Do not change old APIs (`tree.h`, `list.h`, `hash.h`) - ROADMAP §0.6.
+- Do not change old APIs (`tree.h`, `list.h`, `hash.h`) - ROADMAP section 0.6.
   Only add new modules.
 - Do not commit with `build/`, `*.o`, `*.repl`, `*.bak` - `.gitignore`
   covers it, but check `git status` before `git add`.
@@ -79,7 +79,7 @@ Each stage ends with a tag: `stage0-baseline`, `stage2-tree-algo`, ...
 Current: `v1.0`.
 
 Remote: `git@github.com:AlbertFisher666/algo.git`, branch `main`.
-`project-scan.sh` §7 checks upstream - keep it `OK up to date`.
+`project-scan.sh` section 7 checks upstream - keep it `OK up to date`.
 
 ## Docs
 

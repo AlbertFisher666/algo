@@ -324,7 +324,7 @@ Golden REPL tests:
 
     make test-repl
 
-`tests/repl_golden/` has 10 cases (`case01.in` … `case10.in` with
+`tests/repl_golden/` has 10 cases (`case01.in` ... `case10.in` with
 matching `.out`). Each `.in` is fed via `--script`, output is diffed
 against `.out`. `run_golden.sh` normalizes prompts (`^> `) and file
 paths (`<FILE>`); `LC_ALL=C` is set so `strerror` is stable.

@@ -36,27 +36,27 @@ Git - вне scope этого документа (ведётся отдельн�
 | # | Этап | Выход | Оценка | Статус |
 |---|------|-------|--------|--------|
 | 0 | Baseline | тег/точка отката | 0.5д | done |
-| 1 | Каркас сборки | Makefile + конвенции + пустой модуль | 0.5–1д | done |
-| 2 | Tree Algo | `tree_algo` + тесты | 1–2д | done (`stage2-tree-algo`) |
-| 3 | List Algo | `list_algo` + тесты | 1–2д | done (`stage3-list-algo`) |
-| 4 | Hash Algo | `hash_algo` + тесты | 0.5–1д | done (`stage4-hash-algo`) |
-| 5 | REPL: команды | новые команды в REPL | 1–2д | done (`stage5-repl-commands`) |
-| 6 | REPL: batch | `--exec` / `--script` | 1–2д | done (`stage6-batch`) |
+| 1 | Каркас сборки | Makefile + конвенции + пустой модуль | 0.5-1д | done |
+| 2 | Tree Algo | `tree_algo` + тесты | 1-2д | done (`stage2-tree-algo`) |
+| 3 | List Algo | `list_algo` + тесты | 1-2д | done (`stage3-list-algo`) |
+| 4 | Hash Algo | `hash_algo` + тесты | 0.5-1д | done (`stage4-hash-algo`) |
+| 5 | REPL: команды | новые команды в REPL | 1-2д | done (`stage5-repl-commands`) |
+| 6 | REPL: batch | `--exec` / `--script` | 1-2д | done (`stage6-batch`) |
 | 7 | Golden-тесты | `tests/repl_golden/` + `run_golden.sh` | 1д | done (`stage7-golden`, `stage7.1`) |
 | 8 | Docs + v1.0 | README, EXPLAINED, тег | 1д | done (`v1.0`) |
 
-Итого: ~7–11 дней спокойного темпа. Каждый этап - отдельная точка остановки.
+Итого: ~7-11 дней спокойного темпа. Каждый этап - отдельная точка остановки.
 
 ---
 
 ## 2. Этап 0 - Baseline
 
-**Цель:** зафиксировать «v0.1 - done», чтобы было куда откатиться.
+**Цель:** зафиксировать "v0.1 - done", чтобы было куда откатиться.
 
 Шаги:
 1. Убедиться, что `make test` заканчивается `all tests passed`.
 2. Собрать REPL по README вручную, прогнать сценарий:
-   `tree` → `insert 5` → `insert 3` → `draw` → `save demo.repl` → `free` → `load demo.repl` → `draw` → `quit`.
+   `tree` -> `insert 5` -> `insert 3` -> `draw` -> `save demo.repl` -> `free` -> `load demo.repl` -> `draw` -> `quit`.
 3. Положить этот `ROADMAP.md` в корень.
 4. В README в статусе добавить строку `v0.1 - baseline`.
 
@@ -95,13 +95,13 @@ Git - вне scope этого документа (ведётся отдельн�
 - `int tree_min(const Tree* t, int* out)` / `int tree_max(...)` - `1` при успехе, `0` если пусто.
 - `int tree_to_array_inorder(const Tree* t, int* buf, int cap)` - заполняет буфер, возвращает `t->size`.
 - `int tree_from_sorted_array(Tree* t, const int* keys, int n)` - строит идеально сбалансированное дерево напрямую через `new TreeNode` (не через `tree_insert`).
-- `int tree_balance(Tree* t)` - in-order → массив → `tree_free` → `from_sorted_array`.
+- `int tree_balance(Tree* t)` - in-order -> массив -> `tree_free` -> `from_sorted_array`.
 - `typedef void (*TreeVisitFn)(int key, void* user);`
   `int tree_bfs(const Tree* t, TreeVisitFn cb, void* user)` - очередь на массиве `TreeNode*[t->size]`, уровень-порядок.
 
 ### 4.2. Реализация (`src/tree_algo.cpp`)
 
-Порядок: `validate` → `min/max` → `to_array_inorder` → `from_sorted_array` → `balance` → `bfs`.
+Порядок: `validate` -> `min/max` -> `to_array_inorder` -> `from_sorted_array` -> `balance` -> `bfs`.
 Внутренние хелперы - `static`. Никакого `std::`.
 
 Ключевые приёмы:
@@ -115,11 +115,11 @@ Git - вне scope этого документа (ведётся отдельн�
 |---|---|
 | `test_validate_empty` | `1` |
 | `test_validate_good` | `1` на 5/3/8/1/4/7/9 |
-| `test_validate_broken` | собрать вручную битое (правый ребёнок < родителя) → `0` |
+| `test_validate_broken` | собрать вручную битое (правый ребёнок < родителя) -> `0` |
 | `test_min_max_empty` | оба `0` |
 | `test_min_max` | крайние ключи |
 | `test_to_array_inorder` | отсортировано, длина == size |
-| `test_from_sorted_array` | height ≤ ⌈log2(n+1)⌉, size == n, validate == 1 |
+| `test_from_sorted_array` | height <= ceil(log2(n+1)), size == n, validate == 1 |
 | `test_balance` | на вырожденном (1..7) высота падает, validate == 1 |
 | `test_bfs_order` | колбэк собирает уровне-порядок, сверить с ожидаемым массивом |
 
@@ -150,9 +150,9 @@ Git - вне scope этого документа (ведётся отдельн�
 ### 5.3. Тесты (`tests/list_algo_test.cpp`)
 
 - `reverse`: пусто, один, чётное, нечётное - проверить head/tail/prev/next.
-- `middle`: пусто → `NULL`, один, чётное (нижняя), нечётное.
+- `middle`: пусто -> `NULL`, один, чётное (нижняя), нечётное.
 - `sort`: пусто, один, случайные 20, уже отсортированные, обратно отсортированные, дубликаты.
-- `prev`-цепочка после sort - отдельный тест: пройти tail→head и сверить с head→tail.
+- `prev`-цепочка после sort - отдельный тест: пройти tail->head и сверить с head->tail.
 
 **DoD:** аналогично этапу 2.
 
@@ -178,7 +178,7 @@ Git - вне scope этого документа (ведётся отдельн�
 
 **DoD:** аналогично.
 
-**Статус: done.** Тег `stage4-hash-algo` на `6f39f2a`. 4 теста: empty, all-in-one-bucket, spread, bad_args. `min_chain` - только по непустым бакетам, `0` для пустой таблицы (зафиксировано в комментарии в `hash_algo.hpp` и в тесте `test_empty`). `test_bad_args` - добавлен сверх плана (проверяет `NULL` h / `NULL` out → `-1`). `load_factor` в `stats` - `double` (`3/8 → 0.38`), в `draw` - целочисленно (`3/8 → 0.37`), это разные формулы, зафиксировано в ALGO_EXPLAINED §12 п.19.
+**Статус: done.** Тег `stage4-hash-algo` на `6f39f2a`. 4 теста: empty, all-in-one-bucket, spread, bad_args. `min_chain` - только по непустым бакетам, `0` для пустой таблицы (зафиксировано в комментарии в `hash_algo.hpp` и в тесте `test_empty`). `test_bad_args` - добавлен сверх плана (проверяет `NULL` h / `NULL` out -> `-1`). `load_factor` в `stats` - `double` (`3/8 -> 0.38`), в `draw` - целочисленно (`3/8 -> 0.37`), это разные формулы, зафиксировано в ALGO_EXPLAINED section 12 п.19.
 
 ---
 
@@ -200,7 +200,7 @@ Git - вне scope этого документа (ведётся отдельн�
 
 **DoD:** старые команды не сломаны, новые работают, `make test` зелёный (REPL не в unit-тестах, но собирается).
 
-**Статус: done.** Тег `stage5-repl-commands` на `61a120b`. Семь `cmd_*` + `cmd_help` + семь веток в диспетчере `main`. Ручной прогон: `validate` → `valid`, `min` → `3`, `max` → `8`, `balance` → `ok`, `reverse`/`sort` → `ok`, `stats` → три строки. `need(...)` на неправильной структуре - корректные ошибки.
+**Статус: done.** Тег `stage5-repl-commands` на `61a120b`. Семь `cmd_*` + `cmd_help` + семь веток в диспетчере `main`. Ручной прогон: `validate` -> `valid`, `min` -> `3`, `max` -> `8`, `balance` -> `ok`, `reverse`/`sort` -> `ok`, `stats` -> три строки. `need(...)` на неправильной структуре - корректные ошибки.
 
 ---
 
@@ -233,11 +233,11 @@ static int execute_line(char* line);  /* 0 ok, 1 err, 2 quit */
 Интерактив не изменился.
 
 **Статус: done.** Тег `stage6-batch` на `0d9dd19`. `execute_line(line) -> 0/1/2`, `run_exec_string` (свой цикл по `strchr(start, ';')`, не `strtok`), `run_script` (`fgets` построчно), `usage`, `main(argc, argv)` с разбором флагов. Проверено:
-- `--exec "tree; insert 5; insert 3; insert 8; draw; min; max; balance"` → дерево, `3`, `8`, `ok`;
-- `--exec "tree; insert abc"` → `error: insert needs an integer`, `rc=1`;
-- `--keep-going` → ошибка на `abc`, но `insert 8` выполняется;
-- `--exec "tree; quit"` → `rc=0`;
-- `--help` → usage, `rc=0`;
+- `--exec "tree; insert 5; insert 3; insert 8; draw; min; max; balance"` -> дерево, `3`, `8`, `ok`;
+- `--exec "tree; insert abc"` -> `error: insert needs an integer`, `rc=1`;
+- `--keep-going` -> ошибка на `abc`, но `insert 8` выполняется;
+- `--exec "tree; quit"` -> `rc=0`;
+- `--help` -> usage, `rc=0`;
 - интерактив не изменился.
 
 ---
@@ -255,19 +255,19 @@ tests/run_golden.sh
 ### 9.2. Нормализация (`run_golden.sh`)
 - убрать `> ` (на случай, если попадёт);
 - убрать приветствие (в batch его нет - проверить);
-- пути файлов → `<FILE>` (для save/load кейсов);
+- пути файлов -> `<FILE>` (для save/load кейсов);
 - ASCII-диаграммы **не** нормализовать - они контракт.
 
 ### 9.3. Кейсы (10)
 1. tree: insert/draw/validate/min/max/height/size
-2. tree: balance на вырожденном (1..7 → draw)
+2. tree: balance на вырожденном (1..7 -> draw)
 3. list: push_back/push_front/draw/reverse/draw/sort/draw
 4. hash: create/insert/stats/draw/remove
 5. save/load tree round-trip
 6. save/load list round-trip
 7. save/load hash round-trip
 8. ошибки: `insert abc`, `height` без tree, `hash 0`, `load nosuchfile`
-9. дубликаты: tree/hash → warning, list → ok
+9. дубликаты: tree/hash -> warning, list -> ok
 10. `free` + повторное создание
 
 ### 9.4. Makefile
@@ -276,7 +276,7 @@ tests/run_golden.sh
 
 **DoD:** `make test` зелёный, включая golden.
 
-**Статус: done.** Тег `stage7-golden` на `b8f9082`, `stage7.1` на `481b986`. 10 кейсов, `run_golden.sh` (bash, `<( )`, `normalize`, `LC_ALL=C`), `make test-repl`. `make test` теперь зависит от `test-repl` (`all unit tests passed` + `all golden tests passed`). `.repl`-файлы от case05–07 в `.gitignore` (не в git). Фактические отличия от плана:
+**Статус: done.** Тег `stage7-golden` на `b8f9082`, `stage7.1` на `481b986`. 10 кейсов, `run_golden.sh` (bash, `<( )`, `normalize`, `LC_ALL=C`), `make test-repl`. `make test` теперь зависит от `test-repl` (`all unit tests passed` + `all golden tests passed`). `.repl`-файлы от case05-07 в `.gitignore` (не в git). Фактические отличия от плана:
 - `run_golden.sh` - `#!/usr/bin/env bash` (нужен `<( )`), `export LC_ALL=C` (стабильный `strerror`).
 - `make test` включает golden (не только `make test-repl`).
 - Тег `stage7.1` - отдельный коммит `tests: make test includes golden; LC_ALL=C in run_golden.sh` поверх `stage7-golden`.
@@ -286,14 +286,14 @@ tests/run_golden.sh
 ## 10. Этап 8 - Документация и v1.0
 
 1. README: разделы API (tree_algo/list_algo/hash_algo), REPL (новые команды, batch-режимы), Tests (`make test-repl`), статус `v1.0`.
-2. `ALGO_EXPLAINED.md`: раздел «Algo layer» (validate/balance/merge sort/BFS) и «Batch mode» (`execute_line`, `--exec`, `--script`).
-3. `ROADMAP.md`: v1.0 done, generic layer (void\*+компаратор) - в «next».
+2. `ALGO_EXPLAINED.md`: раздел "Algo layer" (validate/balance/merge sort/BFS) и "Batch mode" (`execute_line`, `--exec`, `--script`).
+3. `ROADMAP.md`: v1.0 done, generic layer (void\*+компаратор) - в "next".
 4. `make clean && make && make test` с нуля, `-Wall -Wextra` чисто.
 5. Тег `v1.0`.
 
 **DoD:** всё собирается с нуля, тесты зелёные, документация соответствует коду.
 
-**Статус: done.** README - `v1.0`, batch-режимы, `make test-repl`, `run_golden.sh` в Layout, `list_algo`/`hash_algo` API. `ALGO_EXPLAINED.md` - разделы 8 (слой алгоритмов), 9.7 (batch mode), 10.2 (golden), 12 (подводные камни 15–20), 13 (схема с `run_golden.sh`). `make clean && make && make test` - unit + golden, `-Wall -Wextra` чисто. Тег `v1.0`.
+**Статус: done.** README - `v1.0`, batch-режимы, `make test-repl`, `run_golden.sh` в Layout, `list_algo`/`hash_algo` API. `ALGO_EXPLAINED.md` - разделы 8 (слой алгоритмов), 9.7 (batch mode), 10.2 (golden), 12 (подводные камни 15-20), 13 (схема с `run_golden.sh`). `make clean && make && make test` - unit + golden, `-Wall -Wextra` чисто. Тег `v1.0`.
 
 ---
 
@@ -303,9 +303,9 @@ tests/run_golden.sh
 - `hash_resize` (динамическая capacity).
 - Визуализация в DOT/SVG.
 - Автотесты на `list_sort` стабильность (нужны ключи с метками - потребует generic layer).
-- `CONTRIBUTING.md` - адаптация PROTOCOL §6/§11 к модульной библиотеке (текст готов, не закоммичен).
-- `audit-system.sh` §4 - добавить `algo` в список git-репозиториев (сейчас 4: archive, web, cpvm-cpp, topbyfisher; `algo` - пятый).
-- `PROTOCOL.md` §4.6 - «Четыре git-репозитория» → «Пять», перечислить `algo`.
+- `CONTRIBUTING.md` - адаптация PROTOCOL section 6/section 11 к модульной библиотеке (текст готов, не закоммичен).
+- `audit-system.sh` section 4 - добавить `algo` в список git-репозиториев (сейчас 4: archive, web, cpvm-cpp, topbyfisher; `algo` - пятый).
+- `PROTOCOL.md` section 4.6 - "Четыре git-репозитория" -> "Пять", перечислить `algo`.
 
 ---
 
@@ -1235,20 +1235,20 @@ echo "all golden tests passed"
 
 # Приложение M - Golden-кейсы
 
-См. `tests/repl_golden/case01.in` … `case10.in` и соответствующие `.out` в репозитории. Кейсы:
+См. `tests/repl_golden/case01.in` ... `case10.in` и соответствующие `.out` в репозитории. Кейсы:
 
 1. tree: insert/draw/validate/min/max/height/size
-2. tree: balance на вырожденном (1..7 → draw)
+2. tree: balance на вырожденном (1..7 -> draw)
 3. list: push_back/push_front/draw/reverse/draw/sort/draw
 4. hash: create/insert/stats/draw/remove
 5. save/load tree round-trip
 6. save/load list round-trip
 7. save/load hash round-trip
 8. ошибки: `insert abc`, `height` без tree, `hash 0`, `load nosuchfile`
-9. дубликаты: tree/hash → `error: insert N failed (duplicate?)`, list → `ok`
+9. дубликаты: tree/hash -> `error: insert N failed (duplicate?)`, list -> `ok`
 10. `free` + повторное создание
 
-`.repl`-файлы от case05–07 генерируются в `tests/repl_golden/` и игнорируются `.gitignore` (`*.repl`).
+`.repl`-файлы от case05-07 генерируются в `tests/repl_golden/` и игнорируются `.gitignore` (`*.repl`).
 
 ---
 

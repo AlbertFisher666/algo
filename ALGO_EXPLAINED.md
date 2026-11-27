@@ -16,7 +16,7 @@ BST, двусвязный список и хеш-таблица с цепочк�
 и batch-режимами (`--exec`, `--script`).
 
 Главная особенность: это C++ только по факту компиляции. Внутри -
-стиль «80s C-flavoured C++»: `struct`, свободные функции, `new/delete`,
+стиль "80s C-flavoured C++": `struct`, свободные функции, `new/delete`,
 `NULL`, `printf`, `FILE*`, фиксированные буферы. Нет `iostream`,
 `std::string`, STL-контейнеров, классов с конструкторами/деструкторами,
 шаблонов, исключений и RAII.
@@ -28,7 +28,7 @@ BST, двусвязный список и хеш-таблица с цепочк�
 ### 1.1. Единицы трансляции, заголовки и исходники
 
 Каждый `.cpp` - отдельная **единица трансляции**. Компилятор обрабатывает
-её независимо. Заголовки `.hpp` - это «контракты»: объявления структур и
+её независимо. Заголовки `.hpp` - это "контракты": объявления структур и
 функций. Исходники `.cpp` - определения функций.
 
 Схема:
@@ -87,7 +87,7 @@ struct Tree {
 ### 1.3. Указатели, стек и куча
 
 Указатель хранит адрес. `TreeNode*` - адрес узла в памяти. `NULL` -
-нулевой указатель, «никуда не указывает».
+нулевой указатель, "никуда не указывает".
 
 Локальные переменные вроде `Tree t;` в тестах и `Tree g_tree;` в REPL
 живут в статической/стековой памяти. А узлы создаются через `new`:
@@ -108,8 +108,8 @@ delete n;
 
 ### 1.4. `const`
 
-`const Tree*` означает «указатель на Tree, который эта функция не должна
-менять». Например:
+`const Tree*` означает "указатель на Tree, который эта функция не должна
+менять". Например:
 
 ```cpp
 int tree_find(const Tree* t, int key);
@@ -237,7 +237,7 @@ src/repl.cpp ---> execute_line ---> cmd_* ---> API
 tests/run_golden.sh ---> repl --script ---> tests/repl_golden/*.in
 ```
 
-Тесты, golden и REPL - три разные «верхушки» над одной библиотекой.
+Тесты, golden и REPL - три разные "верхушки" над одной библиотекой.
 
 ---
 
@@ -398,7 +398,7 @@ int list_sort(List* l);
 
 - `list_reverse`: `0` - OK, `-1` - `l == NULL`.
 - `list_middle`: узел или `NULL` для пустого списка; для чётного размера
-  возвращает **нижнюю** середину (`1..4` → `2`).
+  возвращает **нижнюю** середину (`1..4` -> `2`).
 - `list_sort`: `0` - OK, `-1` - `l == NULL`. Stable merge sort.
 
 ### 4.6. `hash_algo.hpp`
@@ -743,7 +743,7 @@ static int validate_node(const TreeNode* n, long long lo, long long hi) {
 идеально сбалансированное дерево, глубина рекурсии `O(log n)`.
 Требует пустое дерево (`root == NULL && size == 0`).
 
-**`tree_balance`** - in-order → массив → `tree_free` → `from_sorted_array`.
+**`tree_balance`** - in-order -> массив -> `tree_free` -> `from_sorted_array`.
 O(n) время, O(n) память.
 
 **`tree_bfs`** - очередь на массиве `const TreeNode*[t->size]`,
@@ -817,7 +817,7 @@ static int parse_whole_int(const char* s, int* out) {
 }
 ```
 
-Он требует, чтобы строка была целиком одним целым: без «хвостов»,
+Он требует, чтобы строка была целиком одним целым: без "хвостов",
 без пустоты, без переполнения `int`.
 
 `execute_line` **модифицирует** строку (обрезает `\n`, `next_token`
@@ -890,7 +890,7 @@ load factor: 0.37
 
 Load factor в `draw` считается целочисленно:
 `lf100 = size * 100 / capacity`, затем печатается `lf100 / 100` и
-`lf100 % 100`. В `stats` - `double` (`3/8 → 0.38`). Это разные формулы,
+`lf100 % 100`. В `stats` - `double` (`3/8 -> 0.38`). Это разные формулы,
 и это нормально.
 
 ### 9.5. Save: `.repl`
@@ -983,7 +983,7 @@ tree
 `--exec`/`--script` останавливает batch и возвращает `0`.
 
 `run_exec_string` не использует `strtok`, потому что `strtok` мутирует
-строку и «съедает» пустые куски; свой цикл по `strchr(start, ';')`
+строку и "съедает" пустые куски; свой цикл по `strchr(start, ';')`
 проще и предсказуемее.
 
 ---
@@ -1005,7 +1005,7 @@ init/insert/collision/remove).
 - min/max: пустое, крайние ключи;
 - to_array_inorder: отсортировано, длина == size;
 - from_sorted_array: сбалансировано, validate;
-- balance: вырожденное 1..7 → высота 3, validate;
+- balance: вырожденное 1..7 -> высота 3, validate;
 - bfs: уровне-порядок через колбэк.
 
 `tree_algo_bounds_test.cpp`:
@@ -1027,14 +1027,14 @@ init/insert/collision/remove).
 - пустая: capacity 8, всё по нулям, `empty_buckets == 8`;
 - все в одном бакете: capacity 1, три ключа, `min == max == 3`;
 - spread: capacity 8, восемь ключей, поля согласованы;
-- bad args: `NULL` h / `NULL` out → `-1`.
+- bad args: `NULL` h / `NULL` out -> `-1`.
 
 `assert` при провале просто abort-ит программу. `main` печатает
 `>>> test_name`, затем запускает тест. В конце - `all <struct> tests passed`.
 
 ### 10.2. Golden REPL-тесты
 
-`tests/repl_golden/` - 10 кейсов: `case01.in` … `case10.in` и
+`tests/repl_golden/` - 10 кейсов: `case01.in` ... `case10.in` и
 соответствующие `.out`. Каждый `.in` подаётся через `--script`,
 вывод сравнивается с `.out` через `diff`.
 
@@ -1051,15 +1051,15 @@ init/insert/collision/remove).
 Кейсы:
 
 1. tree: insert/draw/validate/min/max/height/size
-2. tree: balance на вырожденном (1..7 → draw)
+2. tree: balance на вырожденном (1..7 -> draw)
 3. list: push_back/push_front/draw/reverse/draw/sort/draw
 4. hash: create/insert/stats/draw/remove
 5. save/load tree round-trip
 6. save/load list round-trip
 7. save/load hash round-trip
 8. ошибки: `insert abc`, `height` без tree, `hash 0`, `load nosuchfile`
-9. дубликаты: tree/hash → `error: insert N failed (duplicate?)`,
-   list → `ok`
+9. дубликаты: tree/hash -> `error: insert N failed (duplicate?)`,
+   list -> `ok`
 10. `free` + повторное создание
 
 `make test` = unit + golden. `make test-repl` = только golden.
@@ -1150,14 +1150,14 @@ load может отличаться от исходного, если исхо�
     Это строже, чем `TreeNode**`, и соответствует контракту `const Tree*`.
 17. **`list_middle` для чётного размера возвращает нижнюю середину.**
     `fast = head->next` в старте; это зафиксировано в тесте
-    `test_middle_even` (`1..4` → `2`).
+    `test_middle_even` (`1..4` -> `2`).
 18. **`hash_stats.min_chain` - только по непустым бакетам.**
     `0` для пустой таблицы; это зафиксировано в комментарии в
     `hash_algo.hpp` и в тесте `test_empty`.
 19. **`load_factor` в `draw` и `stats` считается по-разному.**
     `draw`: целочисленно, `lf100 = size * 100 / capacity`, печать
-    `lf100 / 100` и `lf100 % 100` (`3/8 → 0.37`).
-    `stats`: `double`, `(double)size / capacity` (`3/8 → 0.38`).
+    `lf100 / 100` и `lf100 % 100` (`3/8 -> 0.37`).
+    `stats`: `double`, `(double)size / capacity` (`3/8 -> 0.38`).
     Это не ошибка - разные формулы для разных целей. Если нужно
     единообразие - привести `draw` к `double` (но тогда golden-кейс
     `case04` поменяется).
